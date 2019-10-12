@@ -8,8 +8,8 @@ class TestGameSetup(unittest.TestCase):
     def testBasicInit(self):
         game = GameState()
         self.assertEqual(len(game.field), 100, 'field size is default')
-        self.assertEqual(game.field[0], CellStates.RED_ACTIVE, 'red first dot set')
-        self.assertEqual(game.field[-1], CellStates.BLUE_ACTIVE, 'blue first dot set')
+        self.assertEqual(game.field[0], CellStates.BLUE_ACTIVE, 'red first dot set')
+        self.assertEqual(game.field[-1], CellStates.RED_ACTIVE, 'blue first dot set')
 
         self.assertEqual(game.size_w, 10, 'sizew')
         self.assertEqual(game.size_h, 10, 'sizeh')
@@ -20,8 +20,8 @@ class TestGameSetup(unittest.TestCase):
         game = GameState(15, 13)
         self.assertEqual(len(game.field), 195, 'field size is custom')
 
-        self.assertEqual(game.field[0], CellStates.RED_ACTIVE, 'red first dot set')
-        self.assertEqual(game.field[-1], CellStates.BLUE_ACTIVE, 'blue first dot set')
+        self.assertEqual(game.field[0], CellStates.BLUE_ACTIVE, 'red first dot set')
+        self.assertEqual(game.field[-1], CellStates.RED_ACTIVE, 'blue first dot set')
         self.assertEqual(game.field[50], CellStates.EMPTY, 'middle is empty')
 
         self.assertEqual(game.size_w, 13, 'sizew')
@@ -63,12 +63,13 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(self.game.get_cell_state(Position(2, 3)), CellStates.RED_ACTIVE)
 
 
-
-
-class TestPositionConversions(unittest.TestCase):
+class TestWithSimpleField(unittest.TestCase):
 
     def setUp(self):
         self.game = GameState()
+
+
+class TestPositionConversions(TestWithSimpleField):
 
     def testIndexToPosition(self):
         self.assertEqual(self.game.index_to_position(0), Position(0, 0))
@@ -87,8 +88,48 @@ class TestPositionConversions(unittest.TestCase):
         self.assertEqual(self.game.position_to_index(Position(9, 9)), 99)
         self.assertEqual(self.game.position_to_index(Position(6, 0)), 60)
 
-class TestNeighboursResolving(unittest.TestCase):
-    pass
+
+class TestNeighboursResolving(TestWithSimpleField):
+
+    def testMiddleInd(self):
+        pos = Position(5, 5)
+        expected = {self.game.hw_to_index(4, 4), self.game.hw_to_index(4, 5), self.game.hw_to_index(4, 6),
+                    self.game.hw_to_index(5, 4), self.game.hw_to_index(5, 6),
+                    self.game.hw_to_index(6, 4), self.game.hw_to_index(6, 5), self.game.hw_to_index(6, 6)}
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(pos)), expected)
+
+    def testCorner(self):
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9,9))),
+                            {self.game.hw_to_index(8, 9), self.game.hw_to_index(8, 8), self.game.hw_to_index(9, 8)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(0, 0))),
+                            {self.game.hw_to_index(0, 1), self.game.hw_to_index(1, 1), self.game.hw_to_index(1, 0)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(0, 9))),
+                            {self.game.hw_to_index(0, 8), self.game.hw_to_index(1, 8), self.game.hw_to_index(1, 9)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9, 0))),
+                            {self.game.hw_to_index(8, 0), self.game.hw_to_index(8, 1), self.game.hw_to_index(9, 1)})
+
+
+    def testSide(self):
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(5, 9))),
+                            {self.game.hw_to_index(4, 9),  self.game.hw_to_index(6, 9),
+                             self.game.hw_to_index(4, 8), self.game.hw_to_index(5, 8), self.game.hw_to_index(6, 8)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(5, 0))),
+                            {self.game.hw_to_index(4, 0), self.game.hw_to_index(6, 0),
+                             self.game.hw_to_index(4, 1), self.game.hw_to_index(5, 1), self.game.hw_to_index(6, 1)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(0, 5))),
+                            {self.game.hw_to_index(0, 4), self.game.hw_to_index(0, 6),
+                             self.game.hw_to_index(1, 4), self.game.hw_to_index(1, 5), self.game.hw_to_index(1, 6)})
+
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9, 5))),
+                            {self.game.hw_to_index(9, 4), self.game.hw_to_index(9, 6),
+                             self.game.hw_to_index(8, 4), self.game.hw_to_index(8, 5), self.game.hw_to_index(8, 6)})
+
 
 class TestSingleMovesResolving(unittest.TestCase):
     pass

@@ -20,8 +20,8 @@ class GameState:
         self.size_w = w
         self.field = [CellStates.EMPTY] * (h * w)
 
-        self.set_cell(Position(0, 0), CellStates.RED_ACTIVE)
-        self.set_cell(Position(h - 1, w - 1), CellStates.BLUE_ACTIVE)
+        self.set_cell(Position(0, 0), CellStates.BLUE_ACTIVE)
+        self.set_cell(Position(h - 1, w - 1), CellStates.RED_ACTIVE)
 
     @classmethod
     def fromFieldList(cls, h: int, w: int, field: Field, to_move: Teams):
@@ -92,52 +92,58 @@ class GameState:
 
         #   _____
         #  |* * .|
-        #  |* = .|
+        #  |. = .|
         #  |. . .|
         #   '''''
 
         if pos.h > 0:
             yield Position(pos.h - 1, pos.w)
             if pos.w > 0:
-                yield Position(pos.h, pos.w - 1)
                 yield Position(pos.h - 1, pos.w - 1)
         #   _____
         #  |. . .|
-        #  |. = *|
+        #  |. = .|
         #  |. * *|
         #   '''''
 
         if pos.h < self.size_h - 1:
             yield Position(pos.h + 1, pos.w)
             if pos.w < self.size_w - 1:
-                yield Position(pos.h, pos.w + 1)
+                #
                 yield Position(pos.h + 1, pos.w + 1)
 
-        if pos.h < self.size_h - 1 and pos.w > 0:
-            yield Position(pos.h + 1, pos.w - 1)
+        if pos.w > 0:
+            yield Position(pos.h, pos.w - 1)
+            if pos.h < self.size_h - 1:
+                yield Position(pos.h + 1, pos.w - 1)
 
-        if pos.h > 0 and pos.w < self.size_w - 1:
-            yield Position(pos.h - 1, pos.w + 1)
+        if pos.w < self.size_w - 1:
+            yield Position(pos.h, pos.w + 1)
+            if pos.h > 0:
+                yield Position(pos.h - 1, pos.w + 1)
 
     def get_cell_neighbours_indices(self, pos):
 
         if pos.h > 0:
             yield self.hw_to_index(pos.h - 1, pos.w)
             if pos.w > 0:
-                yield self.hw_to_index(pos.h, pos.w - 1)
                 yield self.hw_to_index(pos.h - 1, pos.w - 1)
 
         if pos.h < self.size_h - 1:
             yield self.hw_to_index(pos.h + 1, pos.w)
             if pos.w < self.size_w - 1:
-                yield self.hw_to_index(pos.h, pos.w + 1)
+                #
                 yield self.hw_to_index(pos.h + 1, pos.w + 1)
 
-        if pos.h < self.size_h - 1 and pos.w > 0:
-            yield self.hw_to_index(pos.h + 1, pos.w - 1)
+        if pos.w > 0:
+            yield self.hw_to_index(pos.h, pos.w - 1)
+            if pos.h < self.size_h - 1:
+                yield self.hw_to_index(pos.h + 1, pos.w - 1)
 
-        if pos.h > 0 and pos.w < self.size_w - 1:
-            yield self.hw_to_index(pos.h - 1, pos.w + 1)
+        if pos.w < self.size_w - 1:
+            yield self.hw_to_index(pos.h, pos.w + 1)
+            if pos.h > 0:
+                yield self.hw_to_index(pos.h - 1, pos.w + 1)
 
     def get_all_unseen_moves_from_cell(self, cell, seen: Mask):
         pass

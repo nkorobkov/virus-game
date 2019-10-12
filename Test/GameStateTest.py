@@ -100,7 +100,7 @@ class TestNeighboursResolving(TestWithSimpleField):
         self.assertSetEqual(set(self.game.get_cell_neighbours_indices(pos)), expected)
 
     def testCorner(self):
-        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9,9))),
+        self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9, 9))),
                             {self.game.hw_to_index(8, 9), self.game.hw_to_index(8, 8), self.game.hw_to_index(9, 8)})
 
         self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(0, 0))),
@@ -112,10 +112,9 @@ class TestNeighboursResolving(TestWithSimpleField):
         self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(9, 0))),
                             {self.game.hw_to_index(8, 0), self.game.hw_to_index(8, 1), self.game.hw_to_index(9, 1)})
 
-
     def testSide(self):
         self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(5, 9))),
-                            {self.game.hw_to_index(4, 9),  self.game.hw_to_index(6, 9),
+                            {self.game.hw_to_index(4, 9), self.game.hw_to_index(6, 9),
                              self.game.hw_to_index(4, 8), self.game.hw_to_index(5, 8), self.game.hw_to_index(6, 8)})
 
         self.assertSetEqual(set(self.game.get_cell_neighbours_indices(Position(5, 0))),
@@ -132,7 +131,128 @@ class TestNeighboursResolving(TestWithSimpleField):
 
 
 class TestSingleMovesResolving(unittest.TestCase):
-    pass
+
+    def testElementary(self):
+        field: Field = \
+            [CellStates.BA, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, True, False,
+             True, True, False,
+             False, False, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'Elementary')
+
+    def testBaseUsage(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, False, True,
+             True, True, True,
+             False, False, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base simple')
+
+    def testBaseDeactevated(self):
+        field: Field = \
+            [CellStates.BA, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, True, False,
+             True, True, False,
+             False, False, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base deact')
+
+    def testBaseInfluence(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, False, True,
+             True, True, False,
+             False, True, True]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base inf')
+
+    def testPossibleMoves(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BB, CellStates.EE,
+             CellStates.RA, CellStates.BA, CellStates.EE,
+             CellStates.RB, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, False, True,
+             True, False, True,
+             False, True, True]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base possible moves')
+
+    def testSubcomplexBlueMove(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BA, CellStates.RA,
+             CellStates.BA, CellStates.EE, CellStates.RB,
+             CellStates.BA, CellStates.EE, CellStates.RA]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, False, True,
+             False, True, False,
+             False, True, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'subcomp')
+
+
+
+    def testComplexRedMove(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BA, CellStates.RA, CellStates.BA, CellStates.RB,
+             CellStates.BA, CellStates.EE, CellStates.RB, CellStates.EE, CellStates.EE,
+             CellStates.BA, CellStates.EE, CellStates.RA, CellStates.EE, CellStates.BB,
+             CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RA,
+             CellStates.BB, CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RA]
+
+        game = GameState.fromFieldList(5, 5, field, Teams.RED)
+
+        expected: Mask = \
+            [False, True, False, True, False,
+             False, True, False, True, False,
+             False, True, False, True, False,
+             False, True, True, True, False,
+             False, False, True, False, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected)
+
+    def testComplexBlueMove(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BA, CellStates.RA, CellStates.BA, CellStates.RB,
+             CellStates.BA, CellStates.EE, CellStates.RB, CellStates.EE, CellStates.EE,
+             CellStates.BA, CellStates.EE, CellStates.RA, CellStates.EE, CellStates.BB,
+             CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RA,
+             CellStates.BB, CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RA]
+
+        game = GameState.fromFieldList(5, 5, field, Teams.BLUE)
+
+        expected: Mask = \
+            [False, False, True, False, False,
+             False, True, False, True, True,
+             False, True, False, False, False,
+             False, True, False, False, False,
+             False, True, False, False, False]
+        self.assertListEqual(game.get_all_single_moves_mask(), expected)
 
 
 if __name__ == '__main__':

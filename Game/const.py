@@ -4,13 +4,8 @@ from collections import namedtuple
 CellState = namedtuple('CellState', ['blue_transition',
                                      'red_transition',
                                      'is_blue_transition_possible',
-                                     'is_red_transition_possible'])
-
-RED_BASE = CellState(None, None, False, False)
-BLUE_BASE = CellState(None, None, False, False)
-BLUE_ACTIVE = CellState(None, RED_BASE, False, True)
-RED_ACTIVE = CellState(BLUE_BASE, None, True, False)
-EMPTY = CellState(BLUE_ACTIVE, RED_ACTIVE, True, True)
+                                     'is_red_transition_possible',
+                                     'team'])
 
 
 class Teams(enum.Enum):
@@ -22,12 +17,27 @@ class Teams(enum.Enum):
         return Teams(-self.value)
 
 
+RED_BASE = CellState(None, None, False, False, Teams.RED)
+BLUE_BASE = CellState(None, None, False, False, Teams.BLUE)
+BLUE_ACTIVE = CellState(None, RED_BASE, False, True, Teams.BLUE)
+RED_ACTIVE = CellState(BLUE_BASE, None, True, False, Teams.RED)
+EMPTY = CellState(BLUE_ACTIVE, RED_ACTIVE, True, True, None)
+
+
+
+
 class CellStates(enum.Enum):
     EMPTY: CellState = EMPTY
     BLUE_ACTIVE: CellState = BLUE_ACTIVE
     BLUE_BASE: CellState = BLUE_BASE
     RED_ACTIVE: CellState = RED_ACTIVE
     RED_BASE: CellState = RED_BASE
+
+    EE: CellState = EMPTY
+    BA: CellState = BLUE_ACTIVE
+    BB: CellState = BLUE_BASE
+    RA: CellState = RED_ACTIVE
+    RB: CellState = RED_BASE
 
     @property
     def after_red_transition(self):

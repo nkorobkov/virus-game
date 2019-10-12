@@ -18,19 +18,20 @@ class GameState:
     def __init__(self, h: int = 10, w: int = 10):
         self.size_h = h
         self.size_w = w
-        self.field.extend([CellStates.EMPTY] * (h * w))
+        self.field = [CellStates.EMPTY] * (h * w)
 
         self.set_cell(Position(0, 0), CellStates.RED_ACTIVE)
         self.set_cell(Position(h - 1, w - 1), CellStates.BLUE_ACTIVE)
 
     @classmethod
-    def fromFieldList(cls, h, w, field: Field):
+    def fromFieldList(cls, h: int, w: int, field: Field, to_move: Teams):
         if not h * w == len(field):
             raise AttributeError("field size does not match dimensions")
         game = GameState()
         game.size_h = h
         game.size_w = w
         game.field = field
+        game.to_move = to_move
         return game
 
     def set_cell(self, pos: Position, state: CellStates):

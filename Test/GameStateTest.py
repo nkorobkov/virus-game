@@ -143,7 +143,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, True, False,
              True, True, False,
              False, False, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'Elementary')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'Elementary')
 
     def testBaseUsage(self):
         field: Field = \
@@ -157,7 +158,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, False, True,
              True, True, True,
              False, False, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base simple')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'base simple')
 
     def testBaseDeactevated(self):
         field: Field = \
@@ -171,7 +173,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, True, False,
              True, True, False,
              False, False, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base deact')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'base deact')
 
     def testBaseInfluence(self):
         field: Field = \
@@ -185,7 +188,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, False, True,
              True, True, False,
              False, True, True]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base inf')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'base inf')
 
     def testPossibleMoves(self):
         field: Field = \
@@ -199,7 +203,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, False, True,
              True, False, True,
              False, True, True]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'base possible moves')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'base possible moves')
 
     def testSubcomplexBlueMove(self):
         field: Field = \
@@ -213,7 +218,8 @@ class TestSingleMovesResolving(unittest.TestCase):
             [False, False, True,
              False, True, False,
              False, True, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected, 'subcomp')
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected, 'subcomp')
 
     def testComplexRedMove(self):
         field: Field = \
@@ -231,7 +237,8 @@ class TestSingleMovesResolving(unittest.TestCase):
              False, True, False, True, False,
              False, True, True, True, False,
              False, False, True, False, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected)
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected)
 
     def testComplexBlueMove(self):
         field: Field = \
@@ -249,7 +256,8 @@ class TestSingleMovesResolving(unittest.TestCase):
              False, True, False, False, False,
              False, True, False, False, False,
              False, True, False, False, False]
-        self.assertListEqual(game.get_all_single_moves_mask(), expected)
+        smm, _ = game.get_all_single_moves_mask()
+        self.assertListEqual(smm, expected)
 
 
 class TestIntermediateStepsMovesResolving(unittest.TestCase):
@@ -272,12 +280,12 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.RA]
 
         game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
-        single_moves_mask: Mask = game.get_all_single_moves_mask()
+        single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
 
-        double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask = \
-            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask)
+        double_moves, second_to_firsts, first_to_seconds = \
+            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
         expected = [[Position(h=0, w=1), Position(h=1, w=2)],
                     [Position(h=0, w=1), Position(h=0, w=2)],
@@ -298,12 +306,12 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.RA]
 
         game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
-        single_moves_mask: Mask = game.get_all_single_moves_mask()
+        single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
 
-        double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask = \
-            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask)
+        double_moves, second_to_firsts, first_to_seconds = \
+            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
         # here we got move with duplicate single in both
         d_step_moves = list(game.get_all_ds_steps_moves(single_positions, second_to_firsts))
@@ -332,17 +340,21 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RB]
 
         game = GameState.fromFieldList(3, 4, field, Teams.BLUE)
-        single_moves_mask: Mask = game.get_all_single_moves_mask()
+        single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
 
-        double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask = \
-            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask)
+        double_moves, second_to_firsts, first_to_seconds = \
+            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
         t_step_moves = list(game.get_all_3_steps_moves(double_moves, single_moves_mask))
 
         expected = [(Position(h=0, w=1), Position(h=1, w=2), Position(h=0, w=3)),
+                    (Position(h=0, w=1), Position(h=1, w=2), Position(h=2, w=1)),
+                    (Position(h=0, w=1), Position(h=1, w=2), Position(h=2, w=2)),
                     (Position(h=0, w=1), Position(h=0, w=2), Position(h=0, w=3)),
+                    (Position(h=1, w=0), Position(h=2, w=1), Position(h=1, w=2)),
+                    (Position(h=1, w=0), Position(h=2, w=1), Position(h=2, w=2)),
                     (Position(h=1, w=1), Position(h=1, w=2), Position(h=0, w=3)),
                     (Position(h=1, w=1), Position(h=0, w=2), Position(h=0, w=3))]
 
@@ -374,7 +386,6 @@ class TestFullMovesResolving(unittest.TestCase):
         expected_num_of_moves = (8 * 7 * 6) / 6
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'Elementary')
         self.assertTrue(self.moves_sanity_check(moves))
-
 
     def testLimitedCorner(self):
         field: Field = \
@@ -461,7 +472,6 @@ class TestFullMovesResolving(unittest.TestCase):
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base conect 2')
         self.assertTrue(self.moves_sanity_check(moves))
 
-
     def testConnectionThroughLayeredBase(self):
         field: Field = \
             [CellStates.BA, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
@@ -477,9 +487,30 @@ class TestFullMovesResolving(unittest.TestCase):
         computed_num_of_moves = len(moves)
 
         # by hand
-        expected_num_of_moves = 10+90+180+5*9*13
+        expected_num_of_moves = 10 + 90 + 180 + 5 * 9 * 13
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered')
         self.assertTrue(self.moves_sanity_check(moves))
 
+    def testMaxMovesPossible(self):
+        field: Field = \
+            [CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA, CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # it is c(n, 3) from all aval cells = c(49-13, 3) = c(36,3)
+        expected_num_of_moves = 6*35*34
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+
 if __name__ == '__main__':
     unittest.main()
+

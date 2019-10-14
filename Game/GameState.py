@@ -67,7 +67,7 @@ class GameState:
             next_state = CellStates(current_state.after_move(team))
             self.set_cell(pos, next_state)
 
-    def get_all_single_moves_mask(self) -> Mask:
+    def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
         active_state = CellStates.BLUE_ACTIVE if self.to_move == Teams.BLUE else CellStates.RED_ACTIVE
 
@@ -90,7 +90,7 @@ class GameState:
                     active_bases_seen.add(cell_i)
                     active_positions.append(self.index_to_position(cell_i))
 
-        return [reachable and movable for reachable, movable in zip(reachable_mask, movable_mask)]
+        return [reachable and movable for reachable, movable in zip(reachable_mask, movable_mask)], active_bases_seen
 
     def get_cell_neighbours_positions(self, pos):
 
@@ -149,11 +149,14 @@ class GameState:
             if pos.h > 0:
                 yield self.hw_to_index(pos.h - 1, pos.w + 1)
 
-    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_seen: Set[Position] = None) -> \
+    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_already_seen: Set[int] = None) -> \
             Iterator[Position]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
-        if active_bases_seen is None:
+        if active_bases_already_seen is None:
             active_bases_seen = set()
+        else:
+            active_bases_seen = set(active_bases_already_seen)
+
         seen_this_run_indices = set()
 
         # need to add through base here
@@ -165,46 +168,38 @@ class GameState:
 
             if self.field[index] == base_state:
                 # traverse base to find any more friends
-                if neighbour not in active_bases_seen:
+                if index not in active_bases_seen:
                     bases_to_check = deque([neighbour])
                     while bases_to_check:
                         checking = bases_to_check.popleft()
-                        active_bases_seen.add(checking)
+                        active_bases_seen.add(self.position_to_index(checking))
                         for checking_neighbour in self.get_cell_neighbours_positions(checking):
                             checking_neighbour_state = self.get_cell_state(checking_neighbour)
                             checking_neighbour_index = self.position_to_index(checking_neighbour)
                             # should think about working only on indices here
-                            if checking_neighbour_state == base_state and checking_neighbour not in active_bases_seen:
+                            if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
                                 bases_to_check.append(checking_neighbour)
-                            if checking_neighbour_state.is_transition_possible(self.to_move)\
+                            if checking_neighbour_state.is_transition_possible(self.to_move) \
                                     and checking_neighbour_index not in seen_this_run_indices \
                                     and not seen[checking_neighbour_index]:
                                 seen_this_run_indices.add(checking_neighbour_index)
                                 yield checking_neighbour
 
-                # if found that base touches our active point stop traversing, we already saw this base.
-                # should we carry info about seen bases here to reduce computation speed? It is hardly possible, since
-                # we call this function to resolve third move. But we may be save there, since we do difference.
-                # Should be something like initially_seen_bases
-                # and some bases can be observed on second move, but still be
-
-                pass
-
-    def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask) \
-            -> Tuple[List[Position], DefaultDict[Position, Set], DefaultDict[Position, List], Mask]:
+    def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask,
+                                               active_bases_seen: Set[int]) \
+            -> Tuple[List[Position], DefaultDict[Position, Set], DefaultDict[Position, List]]:
 
         double_moves = []
         second_to_firsts = defaultdict(set)
         first_to_seconds = defaultdict(list)
-        seen_second_and_first_mask: Mask = single_moves_mask.copy()
 
         for first_pos in single_moves_positions:
-            for second_pos in self.get_all_unseen_moves_from_pos(first_pos, single_moves_mask):
+            for second_pos in self.get_all_unseen_moves_from_pos(first_pos, single_moves_mask, active_bases_seen):
                 double_moves.append([first_pos, second_pos])
-                seen_second_and_first_mask[self.position_to_index(second_pos)] = True
                 second_to_firsts[second_pos].add(first_pos)
                 first_to_seconds[first_pos].append(second_pos)
-        return double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask
+
+        return double_moves, second_to_firsts, first_to_seconds
 
     def get_all_3_steps_moves(self, double_moves, single_moves_mask: Mask) -> Iterator[Move]:
         for double_move in double_moves:
@@ -243,12 +238,12 @@ class GameState:
         return single_positions
 
     def get_all_moves(self) -> Iterable[Move]:
-        single_moves_mask: Mask = self.get_all_single_moves_mask()
+        single_moves_mask, active_bases_seen = self.get_all_single_moves_mask()
 
         single_positions = self.get_single_moves_positions_from_mask(single_moves_mask)
 
-        double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask = \
-            self.get_all_double_moves_from_single_moves(single_positions, single_moves_mask)
+        double_moves, second_to_firsts, first_to_seconds = \
+            self.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
         t_step_moves = self.get_all_3_steps_moves(double_moves, single_moves_mask)
 

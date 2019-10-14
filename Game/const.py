@@ -67,3 +67,6 @@ class CellStates(enum.Enum):
             return self.after_blue_transition
         if team == Teams.RED:
             return self.after_red_transition
+
+    def __str__(self):
+        return "CellStates.{}".format(self.alias())

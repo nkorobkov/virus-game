@@ -149,11 +149,46 @@ class GameState:
             if pos.h > 0:
                 yield self.hw_to_index(pos.h - 1, pos.w + 1)
 
-    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask) -> Iterator[Position]:
+    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_seen: Set[Position] = None) -> \
+            Iterator[Position]:
+        base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
+        if active_bases_seen is None:
+            active_bases_seen = set()
+        seen_this_run_indices = set()
 
+        # need to add through base here
         for index in self.get_cell_neighbours_indices(pos):
+            neighbour = self.index_to_position(index)
             if not seen[index] and self.field[index].is_transition_possible(self.to_move):
-                yield self.index_to_position(index)
+                seen_this_run_indices.add(index)
+                yield neighbour
+
+            if self.field[index] == base_state:
+                # traverse base to find any more friends
+                if neighbour not in active_bases_seen:
+                    bases_to_check = deque([neighbour])
+                    while bases_to_check:
+                        checking = bases_to_check.popleft()
+                        active_bases_seen.add(checking)
+                        for checking_neighbour in self.get_cell_neighbours_positions(checking):
+                            checking_neighbour_state = self.get_cell_state(checking_neighbour)
+                            checking_neighbour_index = self.position_to_index(checking_neighbour)
+                            # should think about working only on indices here
+                            if checking_neighbour_state == base_state and checking_neighbour not in active_bases_seen:
+                                bases_to_check.append(checking_neighbour)
+                            if checking_neighbour_state.is_transition_possible(self.to_move)\
+                                    and checking_neighbour_index not in seen_this_run_indices \
+                                    and not seen[checking_neighbour_index]:
+                                seen_this_run_indices.add(checking_neighbour_index)
+                                yield checking_neighbour
+
+                # if found that base touches our active point stop traversing, we already saw this base.
+                # should we carry info about seen bases here to reduce computation speed? It is hardly possible, since
+                # we call this function to resolve third move. But we may be save there, since we do difference.
+                # Should be something like initially_seen_bases
+                # and some bases can be observed on second move, but still be
+
+                pass
 
     def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask) \
             -> Tuple[List[Position], DefaultDict[Position, Set], DefaultDict[Position, List], Mask]:
@@ -171,7 +206,7 @@ class GameState:
                 first_to_seconds[first_pos].append(second_pos)
         return double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask
 
-    def get_all_3_steps_moves(self, double_moves, single_moves_mask:Mask) -> Iterator[Move]:
+    def get_all_3_steps_moves(self, double_moves, single_moves_mask: Mask) -> Iterator[Move]:
         for double_move in double_moves:
             third: Set[Position] = set()
             third.update(self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask))
@@ -190,7 +225,7 @@ class GameState:
             yield from map(lambda x: (x[0], x[1], second),
                            filter(lambda x: x[0] != x[1], chain(double_access, rest)))
 
-    def get_all_dd_steps_moves(self, first_to_seconds: DefaultDict[Position, List[Position]]) ->Iterable[Move]:
+    def get_all_dd_steps_moves(self, first_to_seconds: DefaultDict[Position, List[Position]]) -> Iterable[Move]:
         '''
 
         :param first_to_seconds:

@@ -420,6 +420,66 @@ class TestFullMovesResolving(unittest.TestCase):
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'enemy base')
         self.assertTrue(self.moves_sanity_check(moves))
 
+    def testNoMove(self):
+        field: Field = \
+            [CellStates.BA, CellStates.EE, CellStates.RB,
+             CellStates.RB, CellStates.RB, CellStates.RB,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # by hand
+        expected_num_of_moves = 0
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'no move')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+    def testConnectionThroughBaseAfterFirst(self):
+        field: Field = \
+            [CellStates.BA, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(1, 6, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # by hand
+        expected_num_of_moves = 1
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base conect 1')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+    def testConnectionThroughBaseAfterSecond(self):
+        field: Field = \
+            [CellStates.BA, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.EE]
+
+        game = GameState.fromFieldList(1, 6, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # by hand
+        expected_num_of_moves = 1
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base conect 2')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+
+    def testConnectionThroughLayeredBase(self):
+        field: Field = \
+            [CellStates.BA, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # by hand
+        expected_num_of_moves = 10+90+180+5*9*13
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered')
+        self.assertTrue(self.moves_sanity_check(moves))
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,10 +1,14 @@
-from Game.const import CellStates, Teams
-from Game.Position import Position
-from collections import deque
-from typing import List
+from Game.const import CellStates, Teams, Position
+from collections import deque, defaultdict
+from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict, Dict, Any
+
+from itertools import combinations, product, chain
+
+from pprint import pprint
 
 Mask = List[bool]
 Field = List[CellStates]
+Move = Tuple[Position, Position, Position]
 
 
 class GameState:
@@ -145,8 +149,79 @@ class GameState:
             if pos.h > 0:
                 yield self.hw_to_index(pos.h - 1, pos.w + 1)
 
-    def get_all_unseen_moves_from_cell(self, cell, seen: Mask):
-        pass
+    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask) -> Iterator[Position]:
 
-    def get_all_moves(self):
-        pass
+        for index in self.get_cell_neighbours_indices(pos):
+            if not seen[index] and self.field[index].is_transition_possible(self.to_move):
+                yield self.index_to_position(index)
+
+    def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask) \
+            -> Tuple[List[Position], DefaultDict[Position, Set], DefaultDict[Position, List], Mask]:
+
+        double_moves = []
+        second_to_firsts = defaultdict(set)
+        first_to_seconds = defaultdict(list)
+        seen_second_and_first_mask: Mask = single_moves_mask.copy()
+
+        for first_pos in single_moves_positions:
+            for second_pos in self.get_all_unseen_moves_from_pos(first_pos, single_moves_mask):
+                double_moves.append([first_pos, second_pos])
+                seen_second_and_first_mask[self.position_to_index(second_pos)] = True
+                second_to_firsts[second_pos].add(first_pos)
+                first_to_seconds[first_pos].append(second_pos)
+        return double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask
+
+    def get_all_3_steps_moves(self, double_moves, single_moves_mask:Mask) -> Iterator[Move]:
+        for double_move in double_moves:
+            third: Set[Position] = set()
+            third.update(self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask))
+            third.difference_update(self.get_all_unseen_moves_from_pos(double_move[0], single_moves_mask))
+            yield from map(lambda y: (double_move[0], double_move[1], y), third)
+
+    def get_all_ds_steps_moves(self, single_positions: List[Position], second_to_firsts) -> Iterable[Move]:
+        '''
+        :param single_positions: List of positions of  all reachable in one step cells
+        :param second_to_firsts:
+        :return: ierator of valid 3 cell moves that contains two cells reachable in  single step and one other
+        '''
+        for second, firsts in second_to_firsts.items():
+            double_access = combinations(firsts, 2)
+            rest = product(firsts, filter(lambda x: x not in firsts, single_positions))
+            yield from map(lambda x: (x[0], x[1], second),
+                           filter(lambda x: x[0] != x[1], chain(double_access, rest)))
+
+    def get_all_dd_steps_moves(self, first_to_seconds: DefaultDict[Position, List[Position]]) ->Iterable[Move]:
+        '''
+
+        :param first_to_seconds:
+        :return: iterator of valid 3 cell moves that contains one cell reachable in single step and two cells reachable
+        in single step from it
+        '''
+        for first, seconds in first_to_seconds.items():
+            yield from map(lambda x: (first, x[0], x[1]), combinations(seconds, 2))
+
+    def get_single_moves_positions_from_mask(self, mask: Mask) -> List[Position]:
+        single_positions = []
+        for index, is_single_possible in enumerate(mask):
+            if is_single_possible:
+                single_positions.append(self.index_to_position(index))
+        return single_positions
+
+    def get_all_moves(self) -> Iterable[Move]:
+        single_moves_mask: Mask = self.get_all_single_moves_mask()
+
+        single_positions = self.get_single_moves_positions_from_mask(single_moves_mask)
+
+        double_moves, second_to_firsts, first_to_seconds, seen_second_and_first_mask = \
+            self.get_all_double_moves_from_single_moves(single_positions, single_moves_mask)
+
+        t_step_moves = self.get_all_3_steps_moves(double_moves, single_moves_mask)
+
+        dd_step_moves = self.get_all_dd_steps_moves(first_to_seconds)
+
+        # here we got move with duplicate single in both
+        d_step_moves = self.get_all_ds_steps_moves(single_positions, second_to_firsts)
+
+        s_step_moves = combinations(single_positions, 3)
+
+        return chain(t_step_moves, dd_step_moves, d_step_moves, s_step_moves)

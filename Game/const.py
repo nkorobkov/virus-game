@@ -7,6 +7,7 @@ CellState = namedtuple('CellState', ['blue_transition',
                                      'is_red_transition_possible',
                                      'team'])
 
+Position = namedtuple('Position', ['h', 'w'])
 
 class Teams(enum.Enum):
     BLUE = 1

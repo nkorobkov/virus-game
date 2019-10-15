@@ -23,12 +23,13 @@ class GameState:
         self.size_h = h
         self.size_w = w
         self.field = [CellStates.EMPTY] * (h * w)
+        self.movable_mask = self.get_movable_mask()
 
         self.set_cell(Position(0, 0), CellStates.BLUE_ACTIVE)
         self.set_cell(Position(h - 1, w - 1), CellStates.RED_ACTIVE)
 
     @classmethod
-    def fromFieldList(cls, h: int, w: int, field: Field, to_move: Teams):
+    def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):
         if not h * w == len(field):
             raise AttributeError("field size does not match dimensions")
         game = GameState()
@@ -36,6 +37,7 @@ class GameState:
         game.size_w = w
         game.field = field
         game.to_move = to_move
+        game.movable_mask = game.get_movable_mask()
         return game
 
     def set_cell(self, pos: Position, state: CellStates):
@@ -67,16 +69,17 @@ class GameState:
             next_state = CellStates(current_state.after_move(team))
             self.set_cell(pos, next_state)
 
+    def get_movable_mask(self) -> Mask:
+        return list(map(lambda x: x.is_transition_possible(self.to_move), self.field))
+
     def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
         active_state = CellStates.BLUE_ACTIVE if self.to_move == Teams.BLUE else CellStates.RED_ACTIVE
 
-        movable_mask: Mask = []
         reachable_mask: Mask = [False] * len(self.field)
         active_positions = deque()
 
         for i, cell in enumerate(self.field):
-            movable_mask.append(cell.is_transition_possible(self.to_move))
             if cell == active_state:
                 active_positions.append(self.index_to_position(i))
 
@@ -90,7 +93,8 @@ class GameState:
                     active_bases_seen.add(cell_i)
                     active_positions.append(self.index_to_position(cell_i))
 
-        return [reachable and movable for reachable, movable in zip(reachable_mask, movable_mask)], active_bases_seen
+        return [reachable and movable for reachable, movable in
+                zip(reachable_mask, self.movable_mask)], active_bases_seen
 
     def get_cell_neighbours_positions(self, pos):
 
@@ -163,7 +167,7 @@ class GameState:
         for index in self.get_cell_neighbours_indices(pos):
             neighbour = self.index_to_position(index)
             if not seen[index] \
-                    and self.field[index].is_transition_possible(self.to_move)\
+                    and self.movable_mask[index] \
                     and index not in seen_this_run_indices:
                 seen_this_run_indices.add(index)
                 yield neighbour
@@ -181,7 +185,7 @@ class GameState:
                             # should think about working only on indices here
                             if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
                                 bases_to_check.append(checking_neighbour)
-                            if checking_neighbour_state.is_transition_possible(self.to_move) \
+                            if self.movable_mask[checking_neighbour_index] \
                                     and checking_neighbour_index not in seen_this_run_indices \
                                     and not seen[checking_neighbour_index]:
                                 seen_this_run_indices.add(checking_neighbour_index)

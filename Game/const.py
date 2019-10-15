@@ -56,7 +56,7 @@ class CellStates(enum.Enum):
     def is_red_transition_possible(self):
         return self.value.is_red_transition_possible
 
-    def is_transition_possible(self, team):
+    def is_transition_possible(self, team: Teams):
         if team == Teams.BLUE:
             return self.is_blue_transition_possible
         if team == Teams.RED:

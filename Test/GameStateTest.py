@@ -32,7 +32,7 @@ class TestGameSetup(unittest.TestCase):
                         CellStates.BLUE_ACTIVE, CellStates.EMPTY, CellStates.BLUE_BASE, CellStates.EMPTY,
                         CellStates.EMPTY, CellStates.RED_BASE, CellStates.RED_ACTIVE, CellStates.RED_ACTIVE]
 
-        game = GameState.fromFieldList(3, 4, field, Teams.RED)
+        game = GameState.from_field_list(3, 4, field, Teams.RED)
 
         self.assertEqual(len(game.field), 12, 'field size is as entered')
         self.assertEqual(game.size_w, 4)
@@ -51,7 +51,7 @@ class TestUtils(unittest.TestCase):
                         CellStates.BLUE_ACTIVE, CellStates.EMPTY, CellStates.BLUE_BASE, CellStates.EMPTY,
                         CellStates.EMPTY, CellStates.RED_BASE, CellStates.RED_ACTIVE, CellStates.RED_ACTIVE]
 
-        self.game = GameState.fromFieldList(3, 4, field, Teams.RED)
+        self.game = GameState.from_field_list(3, 4, field, Teams.RED)
 
     def testSetCell(self):
         self.game.set_cell(Position(1, 1), CellStates.BLUE_BASE)
@@ -138,7 +138,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, True, False,
@@ -153,7 +153,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, False, True,
@@ -168,7 +168,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.BB,
              CellStates.EE, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, True, False,
@@ -183,7 +183,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.BB,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, False, True,
@@ -198,7 +198,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.RA, CellStates.BA, CellStates.EE,
              CellStates.RB, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, False, True,
@@ -213,7 +213,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.BA, CellStates.EE, CellStates.RB,
              CellStates.BA, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
 
         expected: Mask = \
             [False, False, True,
@@ -230,7 +230,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RA,
              CellStates.BB, CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RA]
 
-        game = GameState.fromFieldList(5, 5, field, Teams.RED)
+        game = GameState.from_field_list(5, 5, field, Teams.RED)
 
         expected: Mask = \
             [False, True, False, True, False,
@@ -249,7 +249,7 @@ class TestSingleMovesResolving(unittest.TestCase):
              CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RA,
              CellStates.BB, CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RA]
 
-        game = GameState.fromFieldList(5, 5, field, Teams.BLUE)
+        game = GameState.from_field_list(5, 5, field, Teams.BLUE)
 
         expected: Mask = \
             [False, False, True, False, False,
@@ -280,7 +280,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
@@ -307,7 +307,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA]
 
-        game = GameState.fromFieldList(4, 4, field, Teams.BLUE)
+        game = GameState.from_field_list(4, 4, field, Teams.BLUE)
         single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
@@ -341,7 +341,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
@@ -375,7 +375,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RB,
              CellStates.EE, CellStates.EE, CellStates.RA, CellStates.RB]
 
-        game = GameState.fromFieldList(3, 4, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 4, field, Teams.BLUE)
         single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
 
         single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
@@ -418,7 +418,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BA, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
         # expect C(8,3)
@@ -432,7 +432,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -447,7 +447,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BB, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
         # C(7,3)
@@ -461,7 +461,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.RB, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -476,7 +476,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.RB, CellStates.RB, CellStates.RB,
              CellStates.EE, CellStates.EE, CellStates.RA]
 
-        game = GameState.fromFieldList(3, 3, field, Teams.BLUE)
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -489,7 +489,7 @@ class TestFullMovesResolving(unittest.TestCase):
         field: Field = \
             [CellStates.BA, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(1, 6, field, Teams.BLUE)
+        game = GameState.from_field_list(1, 6, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -502,7 +502,7 @@ class TestFullMovesResolving(unittest.TestCase):
         field: Field = \
             [CellStates.BA, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.EE]
 
-        game = GameState.fromFieldList(1, 6, field, Teams.BLUE)
+        game = GameState.from_field_list(1, 6, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -521,7 +521,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        game = GameState.from_field_list(7, 7, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -540,7 +540,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        game = GameState.from_field_list(7, 7, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -559,7 +559,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
 
-        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        game = GameState.from_field_list(7, 7, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -578,7 +578,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA]
 
-        game = GameState.fromFieldList(4, 4, field, Teams.BLUE)
+        game = GameState.from_field_list(4, 4, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 
@@ -600,7 +600,7 @@ class TestFullMovesResolving(unittest.TestCase):
              CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
              CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.BB]
 
-        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        game = GameState.from_field_list(7, 7, field, Teams.BLUE)
         moves = list(game.get_all_moves())
         computed_num_of_moves = len(moves)
 

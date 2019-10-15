@@ -15,7 +15,7 @@ field: Field = '''
 
 def setup_for_field(field, h, w):
     setup = BASIC_SETUP + FIELD_INTRO + field + '''     
-game = GameState.fromFieldList({},{},field,Teams.BLUE)'''.format(h, w)
+game = GameState.from_field_list({},{},field,Teams.BLUE)'''.format(h, w)
     return setup
 
 

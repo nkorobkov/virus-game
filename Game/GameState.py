@@ -175,21 +175,19 @@ class GameState:
             if self.field[index] == base_state:
                 # traverse base to find any more friends
                 if index not in active_bases_seen:
-                    bases_to_check = deque([neighbour])
+                    bases_to_check = deque([index])
                     while bases_to_check:
-                        checking = bases_to_check.popleft()
-                        active_bases_seen.add(self.position_to_index(checking))
-                        for checking_neighbour in self.get_cell_neighbours_positions(checking):
-                            checking_neighbour_state = self.get_cell_state(checking_neighbour)
-                            checking_neighbour_index = self.position_to_index(checking_neighbour)
-                            # should think about working only on indices here
+                        checking_index = bases_to_check.popleft()
+                        active_bases_seen.add(checking_index)
+                        for checking_neighbour_index in self.get_cell_neighbours_indices(self.index_to_position(checking_index)):
+                            checking_neighbour_state = self.field[checking_neighbour_index]
                             if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
-                                bases_to_check.append(checking_neighbour)
+                                bases_to_check.append(checking_neighbour_index)
                             if self.movable_mask[checking_neighbour_index] \
                                     and checking_neighbour_index not in seen_this_run_indices \
                                     and not seen[checking_neighbour_index]:
                                 seen_this_run_indices.add(checking_neighbour_index)
-                                yield checking_neighbour
+                                yield self.index_to_position(checking_neighbour_index)
 
     def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask,
                                                active_bases_seen: Set[int]) \

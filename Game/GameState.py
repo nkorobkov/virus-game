@@ -2,6 +2,7 @@ from Game.const import CellStates, Teams, Position
 from collections import deque, defaultdict
 from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict
 from copy import deepcopy
+from Game.exceptions import *
 
 from itertools import combinations, product, chain
 
@@ -30,7 +31,7 @@ class GameState:
     @classmethod
     def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):
         if not h * w == len(field):
-            raise AttributeError("field size does not match dimensions")
+            raise UnexpectedFieldSizeError("field size does not match dimensions")
         game = GameState()
         game.size_h = h
         game.size_w = w
@@ -75,7 +76,7 @@ class GameState:
             self.set_cell(pos, next_state)
         else:
             # todo should create custom exceptions for this
-            raise PermissionError(
+            raise ForbidenTransitionError(
                 'transition on {} in state {} is not possible for  {}'.
                     format(pos, current_state, self.to_move))
 

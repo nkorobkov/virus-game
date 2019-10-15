@@ -1,6 +1,7 @@
 import unittest
 from Game.GameState import GameState, Field, Mask
 from Game.const import CellStates, Teams, Position
+from Game.exceptions import *
 from math import factorial
 
 
@@ -42,6 +43,12 @@ class TestGameSetup(unittest.TestCase):
         self.assertEqual(game.to_move, Teams.RED, 'team')
         self.assertEqual(game.field[1], CellStates.BLUE_BASE, 'cells as defined')
         self.assertEqual(game.field[-3], CellStates.RED_BASE, 'cells as defined')
+
+    def testCustomFieldSetupRaises(self):
+        field: Field = [CellStates.BLUE_ACTIVE, CellStates.BLUE_BASE, CellStates.BLUE_BASE, CellStates.RED_BASE]
+
+        with self.assertRaises(UnexpectedFieldSizeError):
+            GameState.from_field_list(1, 3, field, Teams.RED)
 
 
 class TestUtils(unittest.TestCase):
@@ -692,7 +699,7 @@ class TestMove(unittest.TestCase):
         game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         move = [Position(0, 0), Position(0, 1), Position(0, 2)]
 
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ForbidenTransitionError):
             game.make_move(move)
 
     def testImpossibleMoveRaises2(self):
@@ -704,7 +711,7 @@ class TestMove(unittest.TestCase):
         game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         move = [Position(0, 0), Position(0, 1), Position(0, 2)]
 
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ForbidenTransitionError):
             game.make_move(move)
 
     def testImpossibleMoveRaises3(self):
@@ -716,7 +723,7 @@ class TestMove(unittest.TestCase):
         game = GameState.from_field_list(3, 3, field, Teams.BLUE)
         move = [Position(0, 0), Position(0, 1), Position(0, 2)]
 
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ForbidenTransitionError):
             game.make_move(move)
 
 

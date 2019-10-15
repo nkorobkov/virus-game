@@ -170,7 +170,7 @@ class GameState:
         if active_bases_already_seen is None:
             active_bases_seen = set()
         else:
-            active_bases_seen = set(active_bases_already_seen)
+            active_bases_seen: Set[int] = set(active_bases_already_seen)
 
         seen_this_run_indices = set()
 
@@ -195,7 +195,8 @@ class GameState:
                             checking_neighbour_state = self.field[checking_neighbour_index]
                             if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
                                 bases_to_check.append(checking_neighbour_index)
-                            if self.movable_mask[checking_neighbour_index] \
+
+                            elif self.movable_mask[checking_neighbour_index] \
                                     and checking_neighbour_index not in seen_this_run_indices \
                                     and not seen[checking_neighbour_index]:
                                 seen_this_run_indices.add(checking_neighbour_index)
@@ -217,11 +218,17 @@ class GameState:
 
         return double_moves, second_to_firsts, first_to_seconds
 
-    def get_all_3_steps_moves(self, double_moves, single_moves_mask: Mask) -> Iterator[Move]:
+    def get_all_3_steps_moves(self, double_moves, single_moves_mask: Mask, initially_seen_active_bases: Set[int]) -> \
+            Iterator[Move]:
         for double_move in double_moves:
-            third: Set[Position] = set()
-            third.update(self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask))
-            third.difference_update(self.get_all_unseen_moves_from_pos(double_move[0], single_moves_mask))
+            no_third: Set[Position] = set(
+                self.get_all_unseen_moves_from_pos(double_move[0], single_moves_mask, initially_seen_active_bases))
+
+            third: Set[Position] = set(
+                self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask))
+            # would  be nice to exclue bases seen on first move lookup somehow
+
+            third.difference_update(no_third)
             yield from map(lambda y: (double_move[0], double_move[1], y), third)
 
     def get_all_ds_steps_moves(self, single_positions: List[Position], second_to_firsts) -> Iterable[Move]:
@@ -261,7 +268,7 @@ class GameState:
         double_moves, second_to_firsts, first_to_seconds = \
             self.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
-        t_step_moves = self.get_all_3_steps_moves(double_moves, single_moves_mask)
+        t_step_moves = self.get_all_3_steps_moves(double_moves, single_moves_mask, active_bases_seen)
 
         dd_step_moves = self.get_all_dd_steps_moves(first_to_seconds)
 

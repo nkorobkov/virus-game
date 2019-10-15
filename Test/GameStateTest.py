@@ -383,7 +383,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
         double_moves, second_to_firsts, first_to_seconds = \
             game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
-        t_step_moves = list(game.get_all_3_steps_moves(double_moves, single_moves_mask))
+        t_step_moves = list(game.get_all_3_steps_moves(double_moves, single_moves_mask,active_bases_seen))
 
         expected = [(Position(h=0, w=1), Position(h=1, w=2), Position(h=0, w=3)),
                     (Position(h=0, w=1), Position(h=1, w=2), Position(h=2, w=1)),
@@ -528,6 +528,32 @@ class TestFullMovesResolving(unittest.TestCase):
         # by hand
         expected_num_of_moves = 10 + 90 + 180 + 5 * 9 * 13
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+    def testLayeredBase2(self):
+        field: Field = \
+            [CellStates.BA, CellStates.RB, CellStates.RB, CellStates.RB, CellStates.RB, CellStates.RB, CellStates.RB,
+             CellStates.EE, CellStates.RB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
+
+        game = GameState.from_field_list(14, 7, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # by hand
+        expected_num_of_moves = self.comb(19,2) - self.comb(12,2) + self.comb(5,2)
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered2')
         self.assertTrue(self.moves_sanity_check(moves))
 
     def testMaxMovesPossible(self):

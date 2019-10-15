@@ -5,7 +5,8 @@ CellState = namedtuple('CellState', ['blue_transition',
                                      'red_transition',
                                      'is_blue_transition_possible',
                                      'is_red_transition_possible',
-                                     'team'])
+                                     'team',
+                                     'symbol'])
 
 Position = namedtuple('Position', ['h', 'w'])
 
@@ -18,11 +19,11 @@ class Teams(enum.Enum):
         return Teams(-self.value)
 
 
-RED_BASE = CellState(None, None, False, False, Teams.RED)
-BLUE_BASE = CellState(None, None, False, False, Teams.BLUE)
-BLUE_ACTIVE = CellState(None, RED_BASE, False, True, Teams.BLUE)
-RED_ACTIVE = CellState(BLUE_BASE, None, True, False, Teams.RED)
-EMPTY = CellState(BLUE_ACTIVE, RED_ACTIVE, True, True, None)
+RED_BASE = CellState(None, None, False, False, Teams.RED, '♘♘♘')
+BLUE_BASE = CellState(None, None, False, False, Teams.BLUE, '♚♚♚')
+BLUE_ACTIVE = CellState(None, RED_BASE, False, True, Teams.BLUE, ' ♚ ')
+RED_ACTIVE = CellState(BLUE_BASE, None, True, False, Teams.RED, ' ♘ ')
+EMPTY = CellState(BLUE_ACTIVE, RED_ACTIVE, True, True, None, '   ')
 
 
 
@@ -55,6 +56,10 @@ class CellStates(enum.Enum):
     @property
     def is_red_transition_possible(self):
         return self.value.is_red_transition_possible
+
+    @property
+    def symbol(self):
+        return self.value.symbol
 
     def is_transition_possible(self, team: Teams):
         if team == Teams.BLUE:

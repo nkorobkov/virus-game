@@ -290,3 +290,27 @@ class GameState:
         new_state = deepcopy(self)
         new_state.make_move(move)
         return new_state
+
+    def print_field(self):
+
+        header = ' w\h ' + '| {:3} ' * self.size_w + '|'
+        header = header.format(*range(self.size_w))
+        interm = '=====+' * (self.size_w + 1)
+        line = '-----+' * (self.size_w + 1)
+        print(header)
+        print(interm)
+        for i in range(self.size_h):
+            print(' {:3} |'.format(i), end='')
+            for j in range(self.size_w):
+                print(' {:3} |'.format(self.get_cell_state(Position(i, j)).symbol), end='')
+            print()
+            print('     |', end='')
+            for j in range(self.size_w):
+                state = self.get_cell_state(Position(i, j))
+                if state == CellStates.RED_ACTIVE or state == CellStates.BLUE_ACTIVE:
+                    s = '   '
+                else:
+                    s = state.symbol
+                print(' {:3} |'.format(s), end='')
+            print()
+            print(line)

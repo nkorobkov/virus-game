@@ -1,4 +1,8 @@
 import timeit
+import tracemalloc
+import cProfile
+
+
 
 BASIC_SETUP = '''
 from Game.GameState import GameState, Field, Mask
@@ -66,7 +70,9 @@ CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellS
 CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.BB]'''
 
 
+
 res = []
+
 
 res.append(test_field(fieldCenter, 7, 7, 'Simple center'))
 res.append(test_field(fieldLayered, 7, 7, 'fieldLayered'))
@@ -74,6 +80,9 @@ res.append(test_field(fieldRandomBases, 7, 7, 'fieldRandomBases'))
 res.append(test_field(fieldMaxAccessible, 7, 7, 'fieldMaxAccessible'))
 res.append(test_field(fieldTotalBases, 7, 7, 'fieldTotalBases'))
 
-
 print()
 print('{} tests took {:.3} secs'.format(len(res), sum(res)))
+print()
+
+cProfile.run('timeit.timeit(\'game.get_all_moves()\', setup=setup_for_field(fieldTotalBases, 7,7), number=1000)')
+

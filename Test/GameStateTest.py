@@ -1,6 +1,7 @@
 import unittest
 from Game.GameState import GameState, Field, Mask
 from Game.const import CellStates, Teams, Position
+from math import factorial
 
 
 class TestGameSetup(unittest.TestCase):
@@ -299,6 +300,41 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
 
         self.assertSequenceEqual(expected, double_moves)
 
+    def testDoubleMovesResolving2(self):
+        field: Field = \
+            [CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA]
+
+        game = GameState.fromFieldList(4, 4, field, Teams.BLUE)
+        single_moves_mask, active_bases_seen = game.get_all_single_moves_mask()
+
+        single_positions = game.get_single_moves_positions_from_mask(single_moves_mask)
+
+        double_moves, second_to_firsts, first_to_seconds = \
+            game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
+
+        expected = [[Position(h=2, w=2), Position(h=0, w=1)],
+                    [Position(h=2, w=2), Position(h=0, w=3)],
+                    [Position(h=2, w=2), Position(h=2, w=0)],
+                    [Position(h=2, w=2), Position(h=3, w=0)],
+                    [Position(h=2, w=2), Position(h=3, w=1)],
+                    [Position(h=2, w=3), Position(h=0, w=3)],
+                    [Position(h=2, w=3), Position(h=0, w=1)],
+                    [Position(h=2, w=3), Position(h=2, w=0)],
+                    [Position(h=2, w=3), Position(h=3, w=1)],
+                    [Position(h=2, w=3), Position(h=3, w=0)],
+                    [Position(h=3, w=2), Position(h=2, w=0)],
+                    [Position(h=3, w=2), Position(h=3, w=0)],
+                    [Position(h=3, w=2), Position(h=0, w=1)],
+                    [Position(h=3, w=2), Position(h=0, w=3)],
+                    [Position(h=3, w=2), Position(h=3, w=1)]]
+
+        expected.sort()
+        double_moves.sort()
+        self.assertSequenceEqual(expected, double_moves)
+
     def test2StepMovesResolving(self):
         field: Field = \
             [CellStates.BA, CellStates.EE, CellStates.EE,
@@ -362,6 +398,9 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
 
 
 class TestFullMovesResolving(unittest.TestCase):
+
+    def comb(self, n, k):
+        return factorial(n) / (factorial(k) * factorial(n - k))
 
     def moves_sanity_check(self, list_of_moves):
         move_set = set()
@@ -506,11 +545,71 @@ class TestFullMovesResolving(unittest.TestCase):
         computed_num_of_moves = len(moves)
 
         # it is c(n, 3) from all aval cells = c(49-13, 3) = c(36,3)
-        expected_num_of_moves = 6*35*34
-        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered')
+        expected_num_of_moves = self.comb(36, 3)
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'Max Moves')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+    def testCircleBase(self):
+        field: Field = \
+            [CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BA, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE]
+
+        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # it is 20 outside and 8 inside
+        expected_num_of_moves = self.comb(32, 3) - self.comb(24, 3)
+        # expected_num_of_moves = 22*21*20/6 - 14*13*12/6
+
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base circle')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+    def testHalfLotsObBases(self):
+
+        field: Field = \
+            [CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA]
+
+        game = GameState.fromFieldList(4, 4, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # it is
+        expected_num_of_moves = self.comb(8, 3) - self.comb(5, 3)
+
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base a lot')
+        self.assertTrue(self.moves_sanity_check(moves))
+
+
+    def testLotsObBases(self):
+
+        field: Field = \
+            [CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB,
+             CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BA, CellStates.EE, CellStates.EE, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.BB,
+             CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB, CellStates.BB,
+             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.BB]
+
+        game = GameState.fromFieldList(7, 7, field, Teams.BLUE)
+        moves = list(game.get_all_moves())
+        computed_num_of_moves = len(moves)
+
+        # it is
+        expected_num_of_moves = self.comb(21, 3) - self.comb(13, 3)
+
+        self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base a lot')
         self.assertTrue(self.moves_sanity_check(moves))
 
 
 if __name__ == '__main__':
     unittest.main()
-

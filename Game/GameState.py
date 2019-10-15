@@ -162,7 +162,9 @@ class GameState:
         # need to add through base here
         for index in self.get_cell_neighbours_indices(pos):
             neighbour = self.index_to_position(index)
-            if not seen[index] and self.field[index].is_transition_possible(self.to_move):
+            if not seen[index] \
+                    and self.field[index].is_transition_possible(self.to_move)\
+                    and index not in seen_this_run_indices:
                 seen_this_run_indices.add(index)
                 yield neighbour
 

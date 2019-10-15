@@ -588,7 +588,6 @@ class TestFullMovesResolving(unittest.TestCase):
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base a lot')
         self.assertTrue(self.moves_sanity_check(moves))
 
-
     def testLotsObBases(self):
 
         field: Field = \
@@ -609,6 +608,90 @@ class TestFullMovesResolving(unittest.TestCase):
 
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base a lot')
         self.assertTrue(self.moves_sanity_check(moves))
+
+
+class TestMove(unittest.TestCase):
+
+    def testElementary(self):
+        field: Field = \
+            [CellStates.EE, CellStates.RA, CellStates.EE,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+        game.make_move(move)
+
+        expected_field: Field = \
+            [CellStates.BA, CellStates.BB, CellStates.BA,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+        expected_movable_mask: Mask = [True, False, True, True, True, True, True, True, False]
+
+        self.assertSequenceEqual(expected_field, game.field, 'Elementary')
+        self.assertSequenceEqual(expected_movable_mask, game.movable_mask)
+        self.assertEqual(Teams.RED, game.to_move)
+
+    def testCopy(self):
+        field: Field = \
+            [CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        mm = game.movable_mask.copy()
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+        new_game = game.get_copy_with_move(move)
+
+        expected_field: Field = \
+            [CellStates.BA, CellStates.BA, CellStates.BA,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+        expected_movable_mask: Mask = [True, True, True, True, True, True, True, True, False]
+
+        self.assertSequenceEqual(expected_field, new_game.field, 'copy')
+        self.assertSequenceEqual(expected_movable_mask, new_game.movable_mask)
+        self.assertEqual(Teams.RED, new_game.to_move)
+
+        self.assertSequenceEqual(field, game.field, 'copy')
+        self.assertSequenceEqual(mm, game.movable_mask)
+        self.assertEqual(Teams.BLUE, game.to_move)
+
+    def testImpossibleMoveRaises(self):
+        field: Field = \
+            [CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+
+        with self.assertRaises(PermissionError):
+            game.make_move(move)
+
+    def testImpossibleMoveRaises2(self):
+        field: Field = \
+            [CellStates.EE, CellStates.RA, CellStates.RB,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+
+        with self.assertRaises(PermissionError):
+            game.make_move(move)
+
+    def testImpossibleMoveRaises3(self):
+        field: Field = \
+            [CellStates.EE, CellStates.EE, CellStates.BB,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+
+        with self.assertRaises(PermissionError):
+            game.make_move(move)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,9 @@
 from Game.const import CellStates, Teams, Position
 from collections import deque, defaultdict
-from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict, Dict, Any
+from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict
+from copy import deepcopy
 
 from itertools import combinations, product, chain
-
-from pprint import pprint
 
 Mask = List[bool]
 Field = List[CellStates]
@@ -46,12 +45,15 @@ class GameState:
     def get_cell_state(self, pos: Position) -> CellStates:
         return self.field[self.position_to_index(pos)]
 
+    # numba
     def hw_to_index(self, h, w) -> int:
         return h * self.size_w + w
 
+    # numba
     def position_to_index(self, pos) -> int:
         return self.hw_to_index(pos.h, pos.w)
 
+    # numba
     def index_to_position(self, index) -> Position:
         return Position(index // self.size_w, index % self.size_w)
 
@@ -60,14 +62,22 @@ class GameState:
             return False
         current_state.is_transition_possible(team)
 
-    def transition_single_cell(self, pos: Position, team: Teams):
-
-        # may be remove team and always use to move team
+    def transition_single_cell(self, pos: Position):
+        '''
+        Changes the field like player self.to_move made a step at position pos
+        :param pos:
+        :return: None
+        '''
 
         current_state: CellStates = self.get_cell_state(pos)
-        if self.is_single_cell_transition_possible(current_state, team):
-            next_state = CellStates(current_state.after_move(team))
+        if current_state.is_transition_possible(self.to_move):
+            next_state = CellStates(current_state.after_transition(self.to_move))
             self.set_cell(pos, next_state)
+        else:
+            # todo should create custom exceptions for this
+            raise PermissionError(
+                'transition on {} in state {} is not possible for  {}'.
+                    format(pos, current_state, self.to_move))
 
     def get_movable_mask(self) -> Mask:
         return list(map(lambda x: x.is_transition_possible(self.to_move), self.field))
@@ -96,7 +106,7 @@ class GameState:
         return [reachable and movable for reachable, movable in
                 zip(reachable_mask, self.movable_mask)], active_bases_seen
 
-    def get_cell_neighbours_positions(self, pos):
+    def get_cell_neighbours_positions(self, pos: Position):
 
         #   _____
         #  |* * .|
@@ -130,7 +140,8 @@ class GameState:
             if pos.h > 0:
                 yield Position(pos.h - 1, pos.w + 1)
 
-    def get_cell_neighbours_indices(self, pos):
+    # consider nubma here
+    def get_cell_neighbours_indices(self, pos: Position):
 
         if pos.h > 0:
             yield self.hw_to_index(pos.h - 1, pos.w)
@@ -179,7 +190,8 @@ class GameState:
                     while bases_to_check:
                         checking_index = bases_to_check.popleft()
                         active_bases_seen.add(checking_index)
-                        for checking_neighbour_index in self.get_cell_neighbours_indices(self.index_to_position(checking_index)):
+                        for checking_neighbour_index in self.get_cell_neighbours_indices(
+                                self.index_to_position(checking_index)):
                             checking_neighbour_state = self.field[checking_neighbour_index]
                             if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
                                 bases_to_check.append(checking_neighbour_index)
@@ -259,3 +271,14 @@ class GameState:
         s_step_moves = combinations(single_positions, 3)
 
         return chain(t_step_moves, dd_step_moves, d_step_moves, s_step_moves)
+
+    def make_move(self, move):
+        for pos in move:
+            self.transition_single_cell(pos)
+        self.to_move = self.to_move.other
+        self.movable_mask = self.get_movable_mask()
+
+    def get_copy_with_move(self, move):
+        new_state = deepcopy(self)
+        new_state.make_move(move)
+        return new_state

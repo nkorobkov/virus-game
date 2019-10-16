@@ -1,5 +1,7 @@
 from Policy.Policy import Policy
 from Policy.RandomPolicy import RandomPolicy
+from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
+from MiniMaxPolicy.Evaluator.SimpleEvaluator import SimpleEvaluator
 from Game.GameState import GameState
 from Policy.exceptions import *
 
@@ -23,7 +25,7 @@ def play_game_between_policies(policy1: Policy, policy2: Policy, show=False) -> 
     :param show: print field after moves
     :return: bool --> did policy1 won
     '''
-    game = GameState(10, 10)
+    game = GameState(8, 8)
     move_count = 0
     while True:
         try:
@@ -49,7 +51,10 @@ def play_game_between_policies(policy1: Policy, policy2: Policy, show=False) -> 
 
 
 if __name__ == '__main__':
-    policy1 = RandomPolicy()
-    policy2 = RandomPolicy()
+    evaluator = SimpleEvaluator()
+    policy1 = MiniMaxPolicy(evaluator, 1)
+    policy2 = MiniMaxPolicy(evaluator, 1)
+
+    play_game_between_policies(policy1, policy2, True)
 
     print(compare_policies(policy1, policy2))

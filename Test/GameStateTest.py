@@ -8,6 +8,8 @@ from math import factorial
 class TestGameSetup(unittest.TestCase):
     def testBasicInit(self):
         game = GameState()
+        expected_mm = [True] * 100
+        expected_mm[0] = False
         self.assertEqual(len(game.field), 100, 'field size is default')
         self.assertEqual(game.field[0], CellStates.BLUE_ACTIVE, 'red first dot set')
         self.assertEqual(game.field[-1], CellStates.RED_ACTIVE, 'blue first dot set')
@@ -16,6 +18,7 @@ class TestGameSetup(unittest.TestCase):
         self.assertEqual(game.size_h, 10, 'sizeh')
 
         self.assertEqual(game.to_move, Teams.BLUE, 'Move Blue')
+        self.assertSequenceEqual(expected_mm, game.movable_mask)
 
     def testCustomSize(self):
         game = GameState(15, 13)

@@ -23,10 +23,11 @@ class GameState:
         self.size_h = h
         self.size_w = w
         self.field = [CellStates.EMPTY] * (h * w)
-        self.movable_mask = self.get_movable_mask()
 
         self.set_cell(Position(0, 0), CellStates.BLUE_ACTIVE)
         self.set_cell(Position(h - 1, w - 1), CellStates.RED_ACTIVE)
+
+        self.movable_mask = self.get_movable_mask()
 
     @classmethod
     def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):

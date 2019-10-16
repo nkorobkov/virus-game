@@ -75,7 +75,6 @@ class GameState:
             next_state = CellStates(current_state.after_transition(self.to_move))
             self.set_cell(pos, next_state)
         else:
-            # todo should create custom exceptions for this
             raise ForbidenTransitionError(
                 'transition on {} in state {} is not possible for  {}'.
                     format(pos, current_state, self.to_move))

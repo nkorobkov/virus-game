@@ -8,6 +8,7 @@ class Evaluator:
 
 
 class RandomEvaluator(Evaluator):
+    name = 'Random'
 
     def evaluate(self, game_state: GameState) -> float:
         return game_state.to_move.value

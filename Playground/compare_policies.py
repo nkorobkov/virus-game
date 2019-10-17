@@ -1,7 +1,7 @@
 from Policy.Policy import Policy
 from Policy.RandomPolicy import RandomPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, BasesCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Game.GameState import GameState
 from Policy.exceptions import *
 from Game.const import *
@@ -61,7 +61,7 @@ def move(game: GameState, policy: Policy, show_steps: bool):
 
 
 if __name__ == '__main__':
-    evaluator = BasesCountEvaluator()
+    evaluator = ColoredCellsCountEvaluator()
     policy1 = MiniMaxPolicy(evaluator, 2)
     policy2 = MiniMaxPolicy(evaluator, 1)
 

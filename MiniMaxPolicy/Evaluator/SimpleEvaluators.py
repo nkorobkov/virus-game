@@ -2,6 +2,7 @@ from Game.GameState import GameState
 from Game.const import *
 from MiniMaxPolicy.Evaluator.Evaluator import Evaluator
 from collections import Counter
+from functools import reduce
 
 
 class MovableCountEvaluator(Evaluator):
@@ -18,12 +19,10 @@ class MovableCountEvaluator(Evaluator):
                 sum(game_state.get_all_single_moves_mask()[0]) / sum(game_state.movable_mask))
 
 
-class BasesCountEvaluator(Evaluator):
-    name = 'Bases count'
+class ColoredCellsCountEvaluator(Evaluator):
+    name = 'active cells count'
 
     def evaluate(self, game_state: GameState) -> float:
-        c = Counter(game_state.field)
-        return (c[CellStates.BLUE_BASE] * 2 +
-                c[CellStates.BLUE_ACTIVE] -
-                c[CellStates.RED_BASE] * 2 -
-                c[CellStates.RED_ACTIVE]) / len(game_state.field)
+        return sum(map(lambda x: x.value.team.value if x.value.team is not None else 0, game_state.field)) / len(
+            game_state.field)
+

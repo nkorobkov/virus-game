@@ -54,6 +54,5 @@ class TestMovableCountEvaluator(BaseTestCases.BaseTestAnyEvaluator):
         self.evaluator = MovableCountEvaluator()
 
 
-
 if __name__ == '__main__':
     unittest.main()

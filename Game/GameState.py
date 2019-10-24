@@ -19,27 +19,36 @@ class GameState:
     size_h = 0
     size_w = 0
 
-    def __init__(self, h: int = 10, w: int = 10):
+    def __init__(self, h: int = 10, w: int = 10, raw=False):
         self.size_h = h
         self.size_w = w
         self.field = [CellStates.EMPTY] * (h * w)
 
         self.set_cell(Position(0, 0), CellStates.BLUE_ACTIVE)
         self.set_cell(Position(h - 1, w - 1), CellStates.RED_ACTIVE)
-
-        self.movable_mask = self.get_movable_mask()
+        if not raw:
+            self.movable_mask = self.get_movable_mask()
+        else:
+            self.movable_mask = None
 
     @classmethod
     def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):
         if not h * w == len(field):
             raise UnexpectedFieldSizeError("field size does not match dimensions")
-        game = GameState()
-        game.size_h = h
-        game.size_w = w
+        game = GameState(h, w)
         game.field = field
         game.to_move = to_move
         game.movable_mask = game.get_movable_mask()
         return game
+
+    @classmethod
+    def copy(cls, game):
+        new_game = GameState(game.size_h, game.size_w, True)
+        new_game.field = list(game.field)
+        new_game.to_move = game.to_move
+        new_game.movable_mask = list(game.movable_mask)
+        return new_game
+
 
     def set_cell(self, pos: Position, state: CellStates):
         self.field[self.position_to_index(pos)] = state
@@ -287,7 +296,7 @@ class GameState:
         self.movable_mask = self.get_movable_mask()
 
     def get_copy_with_move(self, move):
-        new_state = deepcopy(self)
+        new_state = GameState.copy(self)
         new_state.make_move(move)
         return new_state
 

@@ -1,5 +1,11 @@
+import sys
+
+from os.path import dirname, join, abspath
+sys.path.insert(0, abspath(join(dirname(__file__), '..')))
+
 from Policy.Policy import Policy
-from Policy.RandomPolicy import RandomPolicy
+from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator
 from Game.GameState import GameState
 from Game.const import Position
 from Playground.const import HELP
@@ -7,6 +13,7 @@ from Playground.exceptions import *
 from Game.exceptions import *
 from Policy.exceptions import *
 from copy import deepcopy
+from time import time
 
 def get_position_from_user_input(s):
     try:
@@ -75,19 +82,24 @@ def do_user_move(game_state: GameState):
 
 
 def play_with_policy(policy: Policy):
-    h, w = 4,4
+    h, w = 9,9
     game = GameState(h, w)
 
-    print('play with policy {} started'.format(policy.__class__))
-    print('You are in the top left corner')
+    print('play with policy {} started.'.format(policy.__class__))
+    print('You are in the top left corner.')
     winner = 0
     while True:
         try:
             if not list(game.get_all_moves()):
                 winner = -1
             do_user_move(game)
-            print('Your move is accepted, now policy moves')
+            print()
+            game.print_field()
+            print()
+            print('Your move is accepted, now {} moves.'.format(policy.name))
+            t = time()
             do_policy_move(game, policy)
+            print('Policy made a move in {} sec. It checked {} positions'.format(time()-t, policy.pos_checked))
         except NoValidMovesException:
             winner = 1
             break
@@ -100,7 +112,7 @@ def play_with_policy(policy: Policy):
     elif winner == -1:
         print('You lost this time.')
     else:
-        print('game was interrupted')
+        print('game was interrupted.')
 
 def do_policy_move(game_state: GameState, policy: Policy):
     move = policy.get_move(game_state)
@@ -108,5 +120,6 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 
 if __name__ == "__main__":
-    policy = RandomPolicy()
+    evaluator = MovableCountEvaluator()
+    policy = MiniMaxPolicy(evaluator, 2)
     play_with_policy(policy)

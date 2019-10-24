@@ -1,21 +1,19 @@
 from Policy.Policy import Policy
-from Policy.RandomPolicy import RandomPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Game.GameState import GameState
 from Policy.exceptions import *
 from Game.const import *
 
+import cProfile
 
-def compare_policies(policy1: Policy, policy2: Policy) -> float:
-    first_policy_won_count = 0
-    n = 100
 
-    for i in range(n):
-        fpw = play_game_between_policies(policy1, policy2, show=True)
-        if fpw:
-            first_policy_won_count += 1
-    return first_policy_won_count / n
+
+def compare_deterministic_policies(policy1: Policy, policy2: Policy) -> float:
+    fpw = int(play_game_between_policies(policy1, policy2, 9, 9, show=True))
+    fpw += int(not play_game_between_policies(policy2, policy1, 9, 9, show=True))
+
+    return fpw
 
 
 def play_game_between_policies(policy1: Policy, policy2: Policy, h=9, w=9, show=False, show_steps=False) -> bool:
@@ -61,10 +59,15 @@ def move(game: GameState, policy: Policy, show_steps: bool):
 
 
 if __name__ == '__main__':
-    evaluator = ColoredCellsCountEvaluator()
-    policy1 = MiniMaxPolicy(evaluator, 2)
-    policy2 = MiniMaxPolicy(evaluator, 1)
+    evaluatorActiveCells = ColoredCellsCountEvaluator()
+    evaluatorMoveCount = MovableCountEvaluator()
 
-    play_game_between_policies(policy1, policy2, 8, 8, True, True)
+    policyMC = MiniMaxPolicy(evaluatorMoveCount, 2)
+    policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
 
-    print(compare_policies(policy1, policy2))
+    print(compare_deterministic_policies(policyMC, policyAC))
+
+    #play_game_between_policies(policy2,policy1, 9, 9, True, True)
+    #cProfile.run(
+        #'compare_deterministic_policies(policy1, policy2)')
+

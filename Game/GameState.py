@@ -71,7 +71,7 @@ class GameState:
     def is_single_cell_transition_possible(self, current_state, team):
         if not team == self.to_move:
             return False
-        current_state.is_transition_possible(team)
+        current_state.is_transition_possible(team.value)
 
     def transition_single_cell(self, pos: Position):
         '''
@@ -81,7 +81,7 @@ class GameState:
         '''
 
         current_state: CellStates = self.get_cell_state(pos)
-        if current_state.is_transition_possible(self.to_move):
+        if current_state.is_transition_possible(self.to_move.value):
             next_state = CellStates(current_state.after_transition(self.to_move))
             self.set_cell(pos, next_state)
         else:
@@ -90,7 +90,8 @@ class GameState:
                     format(pos, current_state, self.to_move))
 
     def get_movable_mask(self) -> Mask:
-        return list(map(lambda x: x.is_transition_possible(self.to_move), self.field))
+        to_move_val = self.to_move.value
+        return list(map(lambda x: x.is_transition_possible(to_move_val), self.field))
 
     def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
@@ -117,62 +118,64 @@ class GameState:
                 zip(reachable_mask, self.movable_mask)], active_bases_seen
 
     def get_cell_neighbours_positions(self, pos: Position):
-
+        h = pos.h
+        w = pos.w
         #   _____
         #  |* * .|
         #  |. = .|
         #  |. . .|
         #   '''''
 
-        if pos.h > 0:
-            yield Position(pos.h - 1, pos.w)
-            if pos.w > 0:
-                yield Position(pos.h - 1, pos.w - 1)
+        if h > 0:
+            yield Position(h - 1, w)
+            if w > 0:
+                yield Position(h - 1, w - 1)
         #   _____
         #  |. . .|
         #  |. = .|
         #  |. * *|
         #   '''''
 
-        if pos.h < self.size_h - 1:
-            yield Position(pos.h + 1, pos.w)
-            if pos.w < self.size_w - 1:
+        if h < self.size_h - 1:
+            yield Position(h + 1, w)
+            if w < self.size_w - 1:
                 #
-                yield Position(pos.h + 1, pos.w + 1)
+                yield Position(h + 1, w + 1)
 
-        if pos.w > 0:
-            yield Position(pos.h, pos.w - 1)
-            if pos.h < self.size_h - 1:
-                yield Position(pos.h + 1, pos.w - 1)
+        if w > 0:
+            yield Position(h, w - 1)
+            if h < self.size_h - 1:
+                yield Position(h + 1, w - 1)
 
-        if pos.w < self.size_w - 1:
-            yield Position(pos.h, pos.w + 1)
-            if pos.h > 0:
-                yield Position(pos.h - 1, pos.w + 1)
+        if w < self.size_w - 1:
+            yield Position(h, w + 1)
+            if h > 0:
+                yield Position(h - 1, w + 1)
 
     # consider nubma here
     def get_cell_neighbours_indices(self, pos: Position):
+        h = pos.h
+        w = pos.w
+        if h > 0:
+            yield self.hw_to_index(h - 1, w)
+            if w > 0:
+                yield self.hw_to_index(h - 1, w - 1)
 
-        if pos.h > 0:
-            yield self.hw_to_index(pos.h - 1, pos.w)
-            if pos.w > 0:
-                yield self.hw_to_index(pos.h - 1, pos.w - 1)
-
-        if pos.h < self.size_h - 1:
-            yield self.hw_to_index(pos.h + 1, pos.w)
-            if pos.w < self.size_w - 1:
+        if h < self.size_h - 1:
+            yield self.hw_to_index(h + 1, w)
+            if w < self.size_w - 1:
                 #
-                yield self.hw_to_index(pos.h + 1, pos.w + 1)
+                yield self.hw_to_index(h + 1, w + 1)
 
-        if pos.w > 0:
-            yield self.hw_to_index(pos.h, pos.w - 1)
-            if pos.h < self.size_h - 1:
-                yield self.hw_to_index(pos.h + 1, pos.w - 1)
+        if w > 0:
+            yield self.hw_to_index(h, w - 1)
+            if h < self.size_h - 1:
+                yield self.hw_to_index(h + 1, w - 1)
 
-        if pos.w < self.size_w - 1:
-            yield self.hw_to_index(pos.h, pos.w + 1)
-            if pos.h > 0:
-                yield self.hw_to_index(pos.h - 1, pos.w + 1)
+        if w < self.size_w - 1:
+            yield self.hw_to_index(h, w + 1)
+            if h > 0:
+                yield self.hw_to_index(h - 1, w + 1)
 
     def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_already_seen: Set[int] = None) -> \
             Iterator[Position]:

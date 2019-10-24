@@ -23,6 +23,5 @@ class ColoredCellsCountEvaluator(Evaluator):
     name = 'active cells count'
 
     def evaluate(self, game_state: GameState) -> float:
-        return sum(map(lambda x: x.value.team.value if x.value.team is not None else 0, game_state.field)) / len(
-            game_state.field)
+        return sum(map(lambda x: x.value, game_state.field)) / len(game_state.field)
 

@@ -1,6 +1,7 @@
 import sys
 
 from os.path import dirname, join, abspath
+
 sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 
 from Policy.Policy import Policy
@@ -15,9 +16,13 @@ from Policy.exceptions import *
 from copy import deepcopy
 from time import time
 
+
 def get_position_from_user_input(s):
     try:
-        h, w = tuple(map(int, s.split(' ')))
+        s = s.strip(' ')
+        s = s.split(' ')
+        s = list(filter(lambda x: x.isdigit(), s))
+        h, w = tuple(map(int, s))
         return Position(h, w)
     except Exception:
         raise InputDoesNotContainPosition
@@ -81,25 +86,37 @@ def do_user_move(game_state: GameState):
     game_state.make_move(move)
 
 
+def do_user_first_move(game_state: GameState):
+    test_state = deepcopy(game_state)
+    step = False
+    while not step:
+        step = do_user_step(test_state, 1)
+    # copied from GameState move
+    game_state.transition_single_cell(step)
+    game_state.to_move = game_state.to_move.other
+    game_state.movable_mask = game_state.get_movable_mask()
+
+
 def play_with_policy(policy: Policy):
-    h, w = 9,9
+    h, w = 9, 9
     game = GameState(h, w)
 
     print('play with policy {} started.'.format(policy.__class__))
     print('You are in the top left corner.')
     winner = 0
+    do_user_first_move(game)
     while True:
         try:
-            if not list(game.get_all_moves()):
-                winner = -1
-            do_user_move(game)
             print()
             game.print_field()
             print()
             print('Your move is accepted, now {} moves.'.format(policy.name))
             t = time()
             do_policy_move(game, policy)
-            print('Policy made a move in {} sec. It checked {} positions'.format(time()-t, policy.pos_checked))
+            print('Policy made a move in {:.2} sec. It checked {} positions'.format(time() - t, policy.pos_checked))
+            if not list(game.get_all_moves()):
+                winner = -1
+            do_user_move(game)
         except NoValidMovesException:
             winner = 1
             break
@@ -114,12 +131,13 @@ def play_with_policy(policy: Policy):
     else:
         print('game was interrupted.')
 
+
 def do_policy_move(game_state: GameState, policy: Policy):
     move = policy.get_move(game_state)
     game_state.make_move(move)
 
 
 if __name__ == "__main__":
-    evaluator = ColoredCellsCountEvaluator()
+    evaluator = MovableCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 2)
     play_with_policy(policy)

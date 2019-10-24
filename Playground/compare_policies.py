@@ -64,10 +64,10 @@ if __name__ == '__main__':
 
     policyMC = MiniMaxPolicy(evaluatorMoveCount, 2)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
+    play_game_between_policies(policyMC, policyAC, 9, 9, True, True)
 
-    print(compare_deterministic_policies(policyMC, policyAC))
+    print(compare_deterministic_policies(policyAC, policyMC))
 
-    #play_game_between_policies(policy2,policy1, 9, 9, True, True)
     #cProfile.run(
         #'compare_deterministic_policies(policy1, policy2)')
 

@@ -5,7 +5,7 @@ sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 
 from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Game.GameState import GameState
 from Game.const import Position
 from Playground.const import HELP
@@ -120,6 +120,6 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 
 if __name__ == "__main__":
-    evaluator = MovableCountEvaluator()
+    evaluator = ColoredCellsCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 2)
     play_with_policy(policy)

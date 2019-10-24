@@ -49,7 +49,6 @@ class GameState:
         new_game.movable_mask = list(game.movable_mask)
         return new_game
 
-
     def set_cell(self, pos: Position, state: CellStates):
         self.field[self.position_to_index(pos)] = state
 
@@ -117,41 +116,6 @@ class GameState:
         return [reachable and movable for reachable, movable in
                 zip(reachable_mask, self.movable_mask)], active_bases_seen
 
-    def get_cell_neighbours_positions(self, pos: Position):
-        h = pos.h
-        w = pos.w
-        #   _____
-        #  |* * .|
-        #  |. = .|
-        #  |. . .|
-        #   '''''
-
-        if h > 0:
-            yield Position(h - 1, w)
-            if w > 0:
-                yield Position(h - 1, w - 1)
-        #   _____
-        #  |. . .|
-        #  |. = .|
-        #  |. * *|
-        #   '''''
-
-        if h < self.size_h - 1:
-            yield Position(h + 1, w)
-            if w < self.size_w - 1:
-                #
-                yield Position(h + 1, w + 1)
-
-        if w > 0:
-            yield Position(h, w - 1)
-            if h < self.size_h - 1:
-                yield Position(h + 1, w - 1)
-
-        if w < self.size_w - 1:
-            yield Position(h, w + 1)
-            if h > 0:
-                yield Position(h - 1, w + 1)
-
     # consider nubma here
     def get_cell_neighbours_indices(self, pos: Position):
         h = pos.h
@@ -179,6 +143,14 @@ class GameState:
 
     def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_already_seen: Set[int] = None) -> \
             Iterator[Position]:
+        '''
+        :param pos:
+        :param seen:
+        :param active_bases_already_seen: Function would not traverse bases that present in this set, to check
+         if they lead to unseen move
+        :return: Iterator on all positions that can be stepped from position pos, and have not been seen already
+        (not in seen).
+        '''
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
         if active_bases_already_seen is None:
             active_bases_seen = set()
@@ -187,33 +159,33 @@ class GameState:
 
         seen_this_run_indices = set()
 
-        # need to add through base here
         for index in self.get_cell_neighbours_indices(pos):
-            neighbour = self.index_to_position(index)
             if not seen[index] \
                     and self.movable_mask[index] \
                     and index not in seen_this_run_indices:
                 seen_this_run_indices.add(index)
-                yield neighbour
+                yield self.index_to_position(index)
 
-            if self.field[index] == base_state:
+            if self.field[index] == base_state and index not in active_bases_seen:
                 # traverse base to find any more friends
-                if index not in active_bases_seen:
-                    bases_to_check = deque([index])
-                    while bases_to_check:
-                        checking_index = bases_to_check.popleft()
-                        active_bases_seen.add(checking_index)
-                        for checking_neighbour_index in self.get_cell_neighbours_indices(
-                                self.index_to_position(checking_index)):
-                            checking_neighbour_state = self.field[checking_neighbour_index]
-                            if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
-                                bases_to_check.append(checking_neighbour_index)
+                bases_to_check = deque([index])
+                yield from self.traverse_bases(bases_to_check, seen, seen_this_run_indices, active_bases_seen)
 
-                            elif self.movable_mask[checking_neighbour_index] \
-                                    and checking_neighbour_index not in seen_this_run_indices \
-                                    and not seen[checking_neighbour_index]:
-                                seen_this_run_indices.add(checking_neighbour_index)
-                                yield self.index_to_position(checking_neighbour_index)
+    def traverse_bases(self, bases_to_check, seen, seen_this_run_indices, active_bases_seen):
+        base_state = self.field[bases_to_check[0]]
+        while bases_to_check:
+            checking_index = bases_to_check.popleft()
+            active_bases_seen.add(checking_index)
+            for checking_neighbour_index in self.get_cell_neighbours_indices(
+                    self.index_to_position(checking_index)):
+                checking_neighbour_state = self.field[checking_neighbour_index]
+                if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
+                    bases_to_check.append(checking_neighbour_index)
+                elif self.movable_mask[checking_neighbour_index] \
+                        and checking_neighbour_index not in seen_this_run_indices \
+                        and not seen[checking_neighbour_index]:
+                    seen_this_run_indices.add(checking_neighbour_index)
+                    yield self.index_to_position(checking_neighbour_index)
 
     def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask,
                                                active_bases_seen: Set[int]) \

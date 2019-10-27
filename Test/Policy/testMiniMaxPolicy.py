@@ -2,7 +2,7 @@ from MiniMaxPolicy.Evaluator.SimpleEvaluators import *
 from MiniMaxPolicy.MiniMaxPolicy import *
 from Game.GameState import GameState, Field
 from Game.const import *
-from Test.Policy.BaseCasesTestPolicy import BaseCasesTests
+from Test.Policy.BasePolicyTestCases import BaseCasesTests
 import unittest
 
 

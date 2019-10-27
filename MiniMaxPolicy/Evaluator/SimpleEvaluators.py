@@ -1,8 +1,6 @@
 from Game.GameState import GameState
-from Game.const import *
 from MiniMaxPolicy.Evaluator.Evaluator import Evaluator
-from collections import Counter
-from functools import reduce
+
 
 
 class MovableCountEvaluator(Evaluator):

@@ -67,10 +67,6 @@ class GameState:
     def index_to_position(self, index) -> Position:
         return Position(index // self.size_w, index % self.size_w)
 
-    def is_single_cell_transition_possible(self, current_state, team):
-        if not team == self.to_move:
-            return False
-        current_state.is_transition_possible(team.value)
 
     def transition_single_cell(self, pos: Position):
         '''

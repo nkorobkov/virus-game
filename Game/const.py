@@ -42,14 +42,6 @@ class CellStates(enum.Enum):
     RB: CellState = -2
 
     @property
-    def after_red_transition(self):
-        return self.value.red_transition
-
-    @property
-    def after_blue_transition(self):
-        return self.value.blue_transition
-
-    @property
     def symbol(self):
         return SYMBOLS[self.value]
 

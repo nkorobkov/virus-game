@@ -1,7 +1,15 @@
 # Virus Game 
 
 This repo holds game engine for paper and pen game called "Virus War".   
+
+### Game
+
+The Virus War is a complete information strategic game between two players (similar to Chess and Go).
 You can read complete rules of the game on the [wiki page](https://github.com/nkorobkov/virus-game/wiki/Rules)
+
+The game usually played on the 9x9 square field. But game size can be changed bu changing field size. 
+In a usual game number of legal moves for players fluctuates around 3K and can reach 15K for certain positions.
+Such a huge action space makes the game difficult for classic minimax approaches.  
 
 ### Play with computer
 

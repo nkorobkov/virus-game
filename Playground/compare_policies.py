@@ -1,5 +1,6 @@
 from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
+from MiniMaxPolicy.PartialMiniMaxPolicy import PartialMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Game.GameState import GameState
@@ -66,7 +67,9 @@ if __name__ == '__main__':
     policyMC = MiniMaxPolicy(evaluatorMoveCount,1)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
     policyBD = MiniMaxPolicy(evaluatorBid, 2)
-    play_game_between_policies(policyAC, policyMC, 9, 9, True, True)
+
+    policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
+    play_game_between_policies(policyAC, policy_partial_ac, 9, 9, True, True)
 
     # print(compare_deterministic_policies(policyAC, policyMC))
 

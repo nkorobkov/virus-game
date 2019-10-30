@@ -12,12 +12,21 @@ class MiniMaxPolicy(Policy):
         self.pos_checked = 0
         self.name = 'MiniMax with depth {} and evaluator {}'.format(depth, evaluator.name)
 
-    def get_move(self, game_state: GameState):
+    def get_best_option(self, game_state: GameState):
         self.pos_checked = 0
         if game_state.to_move == Teams.BLUE:
-            return self.get_max(game_state, self.depth)[1]
+            return self.get_max(game_state, self.depth)
         else:
-            return self.get_min(game_state, self.depth)[1]
+            return self.get_min(game_state, self.depth)
+
+    def get_move(self, game_state: GameState):
+        return self.get_best_option(game_state)[1]
+
+    def get_v(self, game_state: GameState):
+        return self.get_best_option(game_state)[0]
+
+    def get_moves_to_check(self, game_state):
+        return game_state.get_all_moves()
 
     def get_max(self, game_state, depth, alpha=-1000, betta=1000):
         '''
@@ -34,8 +43,7 @@ class MiniMaxPolicy(Policy):
             return self.evaluator.evaluate(game_state), None
         else:
             top_move = None
-
-            for move in game_state.get_all_moves():
+            for move in self.get_moves_to_check(game_state):
                 reward, prev_move = self.get_min(game_state.get_copy_with_move(move), depth - 1, alpha, betta)
                 if reward > existing_reward:
                     existing_reward = reward
@@ -62,7 +70,7 @@ class MiniMaxPolicy(Policy):
             return self.evaluator.evaluate(game_state), None
         else:
             top_move = None
-            for move in game_state.get_all_moves():
+            for move in self.get_moves_to_check(game_state):
                 reward, prev_move = self.get_max(game_state.get_copy_with_move(move), depth - 1, alpha, betta)
                 if reward < existing_reward:
                     existing_reward = reward

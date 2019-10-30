@@ -7,6 +7,7 @@ sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
+from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Game.GameState import GameState
 from Game.const import Position
 from Playground.const import HELP
@@ -97,8 +98,7 @@ def do_user_first_move(game_state: GameState):
     game_state.movable_mask = game_state.get_movable_mask()
 
 
-def play_with_policy(policy: Policy):
-    h, w = 9, 9
+def play_with_policy(policy: Policy, h=9, w=9):
     game = GameState(h, w)
 
     print('play with policy {} started.'.format(policy.__class__))
@@ -138,6 +138,6 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 
 if __name__ == "__main__":
-    evaluator = MovableCountEvaluator()
-    policy = MiniMaxPolicy(evaluator, 2)
-    play_with_policy(policy)
+    evaluator = BidirectionalStepsWithWeightEval()
+    policy = MiniMaxPolicy(evaluator, 3)
+    play_with_policy(policy, 7,7)

@@ -1,6 +1,5 @@
 from Game.GameState import GameState
 from collections import deque
-from Game.const import CellStates
 from MiniMaxPolicy.Evaluator.Evaluator import Evaluator
 from typing import Deque
 
@@ -29,7 +28,7 @@ class BidirectionalStepsWithWeightEval(Evaluator):
         while active:
             i = active.pop()
             for cell_i in game_state.get_cell_neighbours_indices(game_state.index_to_position(i)):
-                state = game_state.field[cell_i].value
+                state = game_state.field[cell_i]
                 if cell_i not in seen:
                     if state == 0:
                         # having available reproduction
@@ -45,7 +44,6 @@ class BidirectionalStepsWithWeightEval(Evaluator):
                     active_seen.add(cell_i)
                     active.append(cell_i)
 
-
         result += active_size * self.active_cell_cost
         return result
 
@@ -57,9 +55,8 @@ class BidirectionalStepsWithWeightEval(Evaluator):
         '''
         active_positions = {1: deque(), -1: deque()}
         for i, cell in enumerate(game_state.field):
-            cellv = cell.value
-            if cellv == 1 or cellv == -1:
-                active_positions[cellv].append(i)
+            if cell == 1 or cell == -1:
+                active_positions[cell].append(i)
 
         return self.calc_all_active(active_positions[1], 1, game_state) - \
                self.calc_all_active(active_positions[-1], -1, game_state)

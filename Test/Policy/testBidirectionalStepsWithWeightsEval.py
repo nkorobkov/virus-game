@@ -1,4 +1,5 @@
-from Game.const import CellStates, Teams
+from Game.CellStates import CellStates
+from Game.Teams import Teams
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Test.Policy.BaseEvaluatorTestCases import BaseCasesTests
 import unittest

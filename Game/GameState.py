@@ -1,20 +1,26 @@
-from Game.const import CellStates, Teams, Position
+from Game.CellStates import CellStates, CellStatesType
+from Game.Teams import Teams, TeamsType
 from collections import deque, defaultdict
 from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict
-from copy import deepcopy
 from Game.exceptions import *
 
 from itertools import combinations, product, chain
 
+from collections import namedtuple
+
+# May be one day get rid of it and use only indices
+Position = namedtuple('Position', ['h', 'w'])
+
 Mask = List[bool]
-Field = List[CellStates]
+# Idea: use array of chars here from array module
+Field = List[CellStatesType]
 Move = Tuple[Position, Position, Position]
 
 
 class GameState:
     field: Field = []
 
-    to_move: Teams = Teams.BLUE
+    to_move: TeamsType = Teams.BLUE
 
     size_h = 0
     size_w = 0
@@ -49,10 +55,10 @@ class GameState:
         new_game.movable_mask = list(game.movable_mask)
         return new_game
 
-    def set_cell(self, pos: Position, state: CellStates):
+    def set_cell(self, pos: Position, state: CellStatesType):
         self.field[self.position_to_index(pos)] = state
 
-    def get_cell_state(self, pos: Position) -> CellStates:
+    def get_cell_state(self, pos: Position) -> CellStatesType:
         return self.field[self.position_to_index(pos)]
 
     # numba
@@ -67,7 +73,6 @@ class GameState:
     def index_to_position(self, index) -> Position:
         return Position(index // self.size_w, index % self.size_w)
 
-
     def transition_single_cell(self, pos: Position):
         '''
         Changes the field like player self.to_move made a step at position pos
@@ -75,9 +80,9 @@ class GameState:
         :return: None
         '''
 
-        current_state: CellStates = self.get_cell_state(pos)
-        if current_state.is_transition_possible(self.to_move.value):
-            next_state = CellStates(current_state.after_transition(self.to_move))
+        current_state: CellStatesType = self.get_cell_state(pos)
+        if CellStates.is_transition_possible(current_state, self.to_move):
+            next_state = CellStates.after_transition(current_state, self.to_move)
             self.set_cell(pos, next_state)
         else:
             raise ForbidenTransitionError(
@@ -85,8 +90,8 @@ class GameState:
                     format(pos, current_state, self.to_move))
 
     def get_movable_mask(self) -> Mask:
-        to_move_val = self.to_move.value
-        return list(map(lambda x: x.is_transition_possible(to_move_val), self.field))
+        to_move_val = self.to_move
+        return list(map(lambda x: CellStates.is_transition_possible(x, to_move_val), self.field))
 
     def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
@@ -260,7 +265,7 @@ class GameState:
     def make_move(self, move):
         for pos in move:
             self.transition_single_cell(pos)
-        self.to_move = self.to_move.other
+        self.to_move = Teams.other(self.to_move)
         self.movable_mask = self.get_movable_mask()
 
     def get_copy_with_move(self, move):
@@ -279,7 +284,7 @@ class GameState:
         for i in range(self.size_h):
             print(' {:3} |'.format(i), end='')
             for j in range(self.size_w):
-                print(' {:3} |'.format(self.get_cell_state(Position(i, j)).symbol), end='')
+                print(' {:3} |'.format(CellStates.symbol(self.get_cell_state(Position(i, j)))), end='')
             print()
             print('     |', end='')
             for j in range(self.size_w):
@@ -287,7 +292,7 @@ class GameState:
                 if state == CellStates.RED_ACTIVE or state == CellStates.BLUE_ACTIVE:
                     s = '   '
                 else:
-                    s = state.symbol
+                    s = CellStates.symbol(state)
                 print(' {:3} |'.format(s), end='')
             print()
             print(line)

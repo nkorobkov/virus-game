@@ -1,5 +1,4 @@
-from Game.GameState import GameState
-from Game.const import Position
+from Game.GameState import GameState, Position
 from typing import List
 
 

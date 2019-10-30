@@ -1,4 +1,4 @@
-from Game.const import Teams
+from Game.Teams import Teams
 
 
 class NoValidMovesException(Exception):

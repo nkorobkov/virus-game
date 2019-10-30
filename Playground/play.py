@@ -9,7 +9,7 @@ from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Game.GameState import GameState
-from Game.const import Position
+from Game.CellStates import Position
 from Playground.const import HELP
 from Playground.exceptions import *
 from Game.exceptions import *
@@ -139,5 +139,5 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 if __name__ == "__main__":
     evaluator = BidirectionalStepsWithWeightEval()
-    policy = MiniMaxPolicy(evaluator, 3)
-    play_with_policy(policy, 7,7)
+    policy = MiniMaxPolicy(evaluator, 2)
+    play_with_policy(policy, 8, 8)

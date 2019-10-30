@@ -1,6 +1,7 @@
 import unittest
-from Game.GameState import GameState, Field, Mask
-from Game.const import CellStates, Teams, Position
+from Game.GameState import GameState, Field, Mask, Position
+from Game.CellStates import CellStates
+from Game.Teams import Teams
 from Game.exceptions import *
 from math import factorial
 
@@ -393,7 +394,7 @@ class TestIntermediateStepsMovesResolving(unittest.TestCase):
         double_moves, second_to_firsts, first_to_seconds = \
             game.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
 
-        t_step_moves = list(game.get_all_3_steps_moves(double_moves, single_moves_mask,active_bases_seen))
+        t_step_moves = list(game.get_all_3_steps_moves(double_moves, single_moves_mask, active_bases_seen))
 
         expected = [(Position(h=0, w=1), Position(h=1, w=2), Position(h=0, w=3)),
                     (Position(h=0, w=1), Position(h=1, w=2), Position(h=2, w=1)),
@@ -562,7 +563,7 @@ class TestFullMovesResolving(unittest.TestCase):
         computed_num_of_moves = len(moves)
 
         # by hand
-        expected_num_of_moves = self.comb(19,2) - self.comb(12,2) + self.comb(5,2)
+        expected_num_of_moves = self.comb(19, 2) - self.comb(12, 2) + self.comb(5, 2)
         self.assertEqual(expected_num_of_moves, computed_num_of_moves, 'base layered2')
         self.assertTrue(self.moves_sanity_check(moves))
 

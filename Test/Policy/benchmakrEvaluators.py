@@ -1,5 +1,5 @@
 from Game.GameState import Field
-from Game.const import CellStates, Teams
+from Game.CellStates import CellStates, Teams
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import *
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from time import time

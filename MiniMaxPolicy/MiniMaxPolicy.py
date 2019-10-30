@@ -1,4 +1,3 @@
-from Game.const import Teams
 from Policy.Policy import Policy
 from Game.GameState import GameState
 from MiniMaxPolicy.Evaluator import Evaluator

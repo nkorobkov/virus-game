@@ -1,7 +1,7 @@
 import timeit
 import tracemalloc
 import cProfile
-from Game.const import CellStates
+from Game.CellStates import CellStates
 
 BASIC_SETUP = '''
 from Game.GameState import GameState, Field, Mask

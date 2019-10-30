@@ -6,7 +6,6 @@ from Game.GameState import GameState
 from Policy.exceptions import *
 from Game.CellStates import *
 
-import cProfile
 
 
 def compare_deterministic_policies(policy1: Policy, policy2: Policy) -> float:
@@ -40,9 +39,9 @@ def play_game_between_policies(policy1: Policy, policy2: Policy, h=9, w=9, show=
 
     str_tmp = 'Winner is {} (playing for {}), in {} moves'
     if winning_team == Teams.BLUE:
-        print(str_tmp.format(policy1.name, CellStates.BLUE_BASE.symbol, move_count))
+        print(str_tmp.format(policy1.name, CellStates.symbol(CellStates.BLUE_BASE), move_count))
     else:
-        print(str_tmp.format(policy2.name, CellStates.RED_BASE.symbol, move_count))
+        print(str_tmp.format(policy2.name, CellStates.symbol(CellStates.RED_BASE), move_count))
 
     if show:
         game.print_field()
@@ -64,10 +63,10 @@ if __name__ == '__main__':
 
     evaluatorBid = BidirectionalStepsWithWeightEval()
 
-    policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
-    policyAC = MiniMaxPolicy(evaluatorActiveCells, 1)
-    policyBD = MiniMaxPolicy(evaluatorBid, 1)
-    play_game_between_policies(policyBD, policyMC, 9, 9, True, True)
+    policyMC = MiniMaxPolicy(evaluatorMoveCount,1)
+    policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
+    policyBD = MiniMaxPolicy(evaluatorBid, 2)
+    play_game_between_policies(policyAC, policyMC, 9, 9, True, True)
 
     # print(compare_deterministic_policies(policyAC, policyMC))
 

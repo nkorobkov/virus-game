@@ -1,15 +1,15 @@
 import timeit
 import tracemalloc
 import cProfile
-from Game.CellStates import CellStates
 
 BASIC_SETUP = '''
-from Game.GameState import GameState, Field, Mask
-from Game.const import CellStates, Teams, Position
+from Game.GameState import GameState, Field, Mask, Position
+from Game.CellStates import CellStates
+from Game.Teams import Teams
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator, MovableCountEvaluator
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 
-evaluator = MovableCountEvaluator()
+evaluator = ColoredCellsCountEvaluator()
 policy = MiniMaxPolicy(evaluator, 1)
     '''
 FIELD_INTRO = '''

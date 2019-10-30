@@ -5,8 +5,9 @@ import cProfile
 
 
 BASIC_SETUP = '''
-from Game.GameState import GameState, Field, Mask
-from Game.const import CellStates, Teams, Position
+from Game.GameState import GameState, Field, Mask, Position
+from Game.CellStates import CellStates
+from Game.Teams import Teams
     
     '''
 FIELD_INTRO = '''

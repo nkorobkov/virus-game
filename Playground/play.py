@@ -8,8 +8,7 @@ from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
-from Game.GameState import GameState
-from Game.CellStates import Position
+from Game.GameState import GameState, Position
 from Playground.const import HELP
 from Playground.exceptions import *
 from Game.exceptions import *
@@ -94,7 +93,7 @@ def do_user_first_move(game_state: GameState):
         step = do_user_step(test_state, 1)
     # copied from GameState move
     game_state.transition_single_cell(step)
-    game_state.to_move = game_state.to_move.other
+    game_state.to_move = Teams.other(game_state.to_move)
     game_state.movable_mask = game_state.get_movable_mask()
 
 
@@ -138,6 +137,6 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 
 if __name__ == "__main__":
-    evaluator = BidirectionalStepsWithWeightEval()
-    policy = MiniMaxPolicy(evaluator, 2)
+    evaluator = ColoredCellsCountEvaluator()
+    policy = MiniMaxPolicy(evaluator, 3)
     play_with_policy(policy, 8, 8)

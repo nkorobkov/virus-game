@@ -1,10 +1,10 @@
-from Policy.Policy import Policy
+from Policy.Policy import EstimatingPolicy
 from Game.GameState import GameState
 from MiniMaxPolicy.Evaluator import Evaluator
 from Policy.exceptions import *
 
 
-class MiniMaxPolicy(Policy):
+class MiniMaxPolicy(EstimatingPolicy):
 
     def __init__(self, evaluator: Evaluator, depth=3):
         self.evaluator: Evaluator = evaluator
@@ -19,11 +19,6 @@ class MiniMaxPolicy(Policy):
         else:
             return self.get_min(game_state, self.depth)
 
-    def get_move(self, game_state: GameState):
-        return self.get_best_option(game_state)[1]
-
-    def get_v(self, game_state: GameState):
-        return self.get_best_option(game_state)[0]
 
     def get_moves_to_check(self, game_state):
         return game_state.get_all_moves()

@@ -266,6 +266,7 @@ class GameState:
         for pos in move:
             self.transition_single_cell(pos)
         self.to_move = Teams.other(self.to_move)
+        # TODO: store two copies of mm for red and for blue and update only parts on move.
         self.movable_mask = self.get_movable_mask()
 
     def get_copy_with_move(self, move):

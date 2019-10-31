@@ -24,9 +24,13 @@ class CellStates:
 
     @classmethod
     def is_transition_possible(cls, state: CellStatesType, team_val: int):
-        t = state * team_val
-        return t == 0 or t == -1
-
+        if state == 0:
+            return True
+        elif team_val == 1:
+            return state == -1
+        else:
+            return state == 1
+        
     @classmethod
     def after_transition(cls, state: CellStatesType, team: int) -> CellStatesType:
         '''

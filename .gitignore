@@ -3,3 +3,4 @@
 Test/Game/debug.py
 Test/Policy/debug.py
 *.pyc
+RL/debug.py

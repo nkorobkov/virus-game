@@ -13,7 +13,7 @@ class BaseCasesTests:
             self.policy = Policy()
 
         def testPolicyReturnsMove(self):
-            game = GameState(5, 5)
+            game = GameState(3, 3)
             move = self.policy.get_move(game)
 
             self.assertEqual(3, len(move))

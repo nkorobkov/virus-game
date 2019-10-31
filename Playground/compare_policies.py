@@ -1,22 +1,27 @@
-from Policy.Policy import Policy
+import time
+
+from Policy.Policy import EstimatingPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.PartialMiniMaxPolicy import PartialMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
+from Policy.ModelBasedPolicy import ModelBasedPolicy
 from Game.GameState import GameState
 from Policy.exceptions import *
 from Game.CellStates import *
+from RL.Model.LinearValue import LinearValue
+import cProfile
 
 
-
-def compare_deterministic_policies(policy1: Policy, policy2: Policy) -> float:
+def compare_deterministic_policies(policy1: EstimatingPolicy, policy2: EstimatingPolicy) -> float:
     fpw = int(play_game_between_policies(policy1, policy2, 9, 9, show=True))
     fpw += int(not play_game_between_policies(policy2, policy1, 9, 9, show=True))
 
     return fpw
 
 
-def play_game_between_policies(policy1: Policy, policy2: Policy, h=9, w=9, show=False, show_steps=False) -> bool:
+def play_game_between_policies(policy1: EstimatingPolicy, policy2: EstimatingPolicy, h=9, w=9, show=False,
+                               show_steps=False) -> bool:
     '''
     plays a game between policy1 and policy2
     :param policy1:
@@ -34,7 +39,7 @@ def play_game_between_policies(policy1: Policy, policy2: Policy, h=9, w=9, show=
             move(game, policy1, show_steps)
             move(game, policy2, show_steps)
         except NoValidMovesException as e:
-            winning_team = e.for_team.other
+            winning_team = Teams.other(e.for_team)
             break
         move_count += 1
 
@@ -49,7 +54,7 @@ def play_game_between_policies(policy1: Policy, policy2: Policy, h=9, w=9, show=
     return winning_team == Teams.BLUE
 
 
-def move(game: GameState, policy: Policy, show_steps: bool):
+def move(game: GameState, policy: EstimatingPolicy, show_steps: bool):
     move = policy.get_move(game)
     game.make_move(move)
     if show_steps:
@@ -61,17 +66,22 @@ def move(game: GameState, policy: Policy, show_steps: bool):
 if __name__ == '__main__':
     evaluatorActiveCells = ColoredCellsCountEvaluator()
     evaluatorMoveCount = MovableCountEvaluator()
-
     evaluatorBid = BidirectionalStepsWithWeightEval()
 
-    policyMC = MiniMaxPolicy(evaluatorMoveCount,1)
+    policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
     policyBD = MiniMaxPolicy(evaluatorBid, 2)
 
     policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
-    play_game_between_policies(policyAC, policy_partial_ac, 9, 9, True, True)
 
+    model = LinearValue(8, 8)
+    model_based_explore = ModelBasedPolicy(model, 8, 8, 0.1)
+    model_based = ModelBasedPolicy(model, 8, 8)
+    t = time.time()
+    for _ in range(10):
+        pass
+        play_game_between_policies(model_based_explore,model_based , 8, 8, True)
+    print(time.time() - t)
     # print(compare_deterministic_policies(policyAC, policyMC))
 
-    # cProfile.run(
-    # 'compare_deterministic_policies(policy1, policy2)')
+    cProfile.run('play_game_between_policies(model_based, model_based_explore, 8, 8,True)')

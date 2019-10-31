@@ -6,8 +6,9 @@ from os.path import dirname, join, abspath
 
 sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 
-from Policy.ModelBasedPolicy import ModelBasedPolicy
-from RL.Model.LinearValue import LinearValue
+# TODO make separate play file for presentation that would not use  dependencies
+#from Policy.ModelBasedPolicy import ModelBasedPolicy
+#from RL.Model.LinearValue import LinearValue
 
 
 from Policy.Policy import Policy
@@ -145,9 +146,9 @@ def do_policy_move(game_state: GameState, policy: Policy):
 if __name__ == "__main__":
     evaluator = ColoredCellsCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 3)
+    play_with_policy(policy, 9, 9)
 
 
-    model = LinearValue(9, 9)
-    modelBased = ModelBasedPolicy(model,  9, 9)
+    #model = LinearValue(9, 9)
+    #modelBased = ModelBasedPolicy(model,  9, 9)
 
-    play_with_policy(modelBased, 9, 9)

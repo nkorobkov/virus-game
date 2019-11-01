@@ -1,7 +1,7 @@
 from Game.CellStates import CellStates, CellStatesType
 from Game.Teams import Teams, TeamsType
 from collections import deque, defaultdict
-from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict
+from typing import List, Set, Iterator, Iterable, Tuple, DefaultDict, Dict
 from Game.exceptions import *
 
 from itertools import combinations, product, chain
@@ -12,6 +12,7 @@ from collections import namedtuple
 Position = namedtuple('Position', ['h', 'w'])
 
 Mask = List[bool]
+MaskDict = Dict[TeamsType, Mask]
 # Idea: use array of chars here from array module
 Field = List[CellStatesType]
 Move = Tuple[Position, Position, Position]
@@ -33,9 +34,9 @@ class GameState:
         self.set_cell(Position(0, 0), CellStates.BLUE_ACTIVE)
         self.set_cell(Position(h - 1, w - 1), CellStates.RED_ACTIVE)
         if not raw:
-            self.movable_mask = self.get_movable_mask()
+            self.movable_masks: MaskDict = self.get_movable_masks()
         else:
-            self.movable_mask = None
+            self.movable_masks: MaskDict = None
 
     @classmethod
     def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):
@@ -44,7 +45,7 @@ class GameState:
         game = GameState(h, w)
         game.field = field
         game.to_move = to_move
-        game.movable_mask = game.get_movable_mask()
+        game.movable_masks = game.get_movable_masks()
         return game
 
     @classmethod
@@ -52,11 +53,18 @@ class GameState:
         new_game = GameState(game.size_h, game.size_w, True)
         new_game.field = list(game.field)
         new_game.to_move = game.to_move
-        new_game.movable_mask = list(game.movable_mask)
+        new_game.movable_masks = game.copy_movable_masks()
         return new_game
+
+    def copy_movable_masks(self) -> MaskDict:
+        return {Teams.BLUE: list(self.movable_masks[Teams.BLUE]),
+                Teams.RED: list(self.movable_masks[Teams.RED])}
 
     def set_cell(self, pos: Position, state: CellStatesType):
         self.field[self.position_to_index(pos)] = state
+
+    def set_cell_on_index(self, index: int, state: CellStatesType):
+        self.field[index] = state
 
     def get_cell_state(self, pos: Position) -> CellStatesType:
         return self.field[self.position_to_index(pos)]
@@ -79,19 +87,27 @@ class GameState:
         :param pos:
         :return: None
         '''
-
-        current_state: CellStatesType = self.get_cell_state(pos)
-        if CellStates.is_transition_possible(current_state, self.to_move):
+        index = self.position_to_index(pos)
+        current_state: CellStatesType = self.field[index]
+        if self.movable_masks[self.to_move][index]:
             next_state = CellStates.after_transition(current_state, self.to_move)
-            self.set_cell(pos, next_state)
+            self.set_cell_on_index(index, next_state)
         else:
             raise ForbidenTransitionError(
                 'transition on {} in state {} is not possible for  {}'.
                     format(pos, current_state, self.to_move))
 
-    def get_movable_mask(self) -> Mask:
-        to_move_val = self.to_move
-        return list(map(lambda x: CellStates.is_transition_possible(x, to_move_val), self.field))
+    def update_movable_masks(self, move: Move) -> None:
+        for to_move in [-1, 1]:
+            for step in move:
+                step_index = self.position_to_index(step)
+                self.movable_masks[to_move][step_index] = CellStates.is_transition_possible(self.field[step_index],
+                                                                                            to_move)
+
+    def get_movable_masks(self) -> MaskDict:
+        return \
+            {to_move: list(map(lambda x: CellStates.is_transition_possible(x, to_move), self.field))
+             for to_move in [1, -1]}
 
     def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
         base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
@@ -115,7 +131,7 @@ class GameState:
                     active_positions.append(self.index_to_position(cell_i))
 
         return [reachable and movable for reachable, movable in
-                zip(reachable_mask, self.movable_mask)], active_bases_seen
+                zip(reachable_mask, self.movable_masks[self.to_move])], active_bases_seen
 
     # consider nubma here
     def get_cell_neighbours_indices(self, pos: Position):
@@ -162,7 +178,7 @@ class GameState:
 
         for index in self.get_cell_neighbours_indices(pos):
             if not seen[index] \
-                    and self.movable_mask[index] \
+                    and self.movable_masks[self.to_move][index] \
                     and index not in seen_this_run_indices:
                 # We can make a step at index position.
                 seen_this_run_indices.add(index)
@@ -179,7 +195,7 @@ class GameState:
                         checking_neighbour_state = self.field[checking_neighbour_index]
                         if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
                             bases_to_check.append(checking_neighbour_index)
-                        elif self.movable_mask[checking_neighbour_index] \
+                        elif self.movable_masks[self.to_move][checking_neighbour_index] \
                                 and checking_neighbour_index not in seen_this_run_indices \
                                 and not seen[checking_neighbour_index]:
                             seen_this_run_indices.add(checking_neighbour_index)
@@ -266,8 +282,7 @@ class GameState:
         for pos in move:
             self.transition_single_cell(pos)
         self.to_move = Teams.other(self.to_move)
-        # TODO: store two copies of mm for red and for blue and update only parts on move.
-        self.movable_mask = self.get_movable_mask()
+        self.update_movable_masks(move)
 
     def get_copy_with_move(self, move):
         new_state = GameState.copy(self)

@@ -1,5 +1,5 @@
 import unittest
-from Game.GameState import GameState, Field, Mask, Position
+from Game.GameState import GameState, Field, Mask, Position, MaskDict
 from Game.CellStates import CellStates
 from Game.Teams import Teams
 from Game.exceptions import *
@@ -19,7 +19,7 @@ class TestGameSetup(unittest.TestCase):
         self.assertEqual(game.size_h, 10, 'sizeh')
 
         self.assertEqual(game.to_move, Teams.BLUE, 'Move Blue')
-        self.assertSequenceEqual(expected_mm, game.movable_mask)
+        self.assertSequenceEqual(expected_mm, game.movable_masks[game.to_move])
 
     def testCustomSize(self):
         game = GameState(15, 13)
@@ -663,11 +663,29 @@ class TestMove(unittest.TestCase):
             [CellStates.BA, CellStates.BB, CellStates.BA,
              CellStates.EE, CellStates.BA, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
-        expected_movable_mask: Mask = [True, False, True, True, True, True, True, True, False]
+        expected_movable_masks: MaskDict = {-1:[True, False, True, True, True, True, True, True, False],
+                                            1:[False, False, False, True, False, True, True, True, True]}
 
         self.assertSequenceEqual(expected_field, game.field, 'Elementary')
-        self.assertSequenceEqual(expected_movable_mask, game.movable_mask)
+        self.assertEqual(expected_movable_masks, game.movable_masks)
         self.assertEqual(Teams.RED, game.to_move)
+
+
+    def testMMCopy(self):
+        field: Field = \
+            [CellStates.EE, CellStates.EE, CellStates.EE,
+             CellStates.EE, CellStates.BA, CellStates.EE,
+             CellStates.EE, CellStates.EE, CellStates.RA]
+
+        game = GameState.from_field_list(3, 3, field, Teams.BLUE)
+        game2 = GameState.from_field_list(3, 3, list(field), Teams.BLUE)
+
+        expected_mm = game2.movable_masks
+        copied_mm = game.copy_movable_masks()
+
+        move = [Position(0, 0), Position(0, 1), Position(0, 2)]
+        game.make_move(move)
+        self.assertEqual(expected_mm, copied_mm)
 
     def testCopy(self):
         field: Field = \
@@ -676,7 +694,7 @@ class TestMove(unittest.TestCase):
              CellStates.EE, CellStates.EE, CellStates.RA]
 
         game = GameState.from_field_list(3, 3, field, Teams.BLUE)
-        mm = game.movable_mask.copy()
+        mm = game.copy_movable_masks()
         move = [Position(0, 0), Position(0, 1), Position(0, 2)]
         new_game = game.get_copy_with_move(move)
 
@@ -684,14 +702,16 @@ class TestMove(unittest.TestCase):
             [CellStates.BA, CellStates.BA, CellStates.BA,
              CellStates.EE, CellStates.BA, CellStates.EE,
              CellStates.EE, CellStates.EE, CellStates.RA]
-        expected_movable_mask: Mask = [True, True, True, True, True, True, True, True, False]
+
+        expected_movable_masks: MaskDict = {-1: [True, True, True, True, True, True, True, True, False],
+                                            1: [False, False, False, True, False, True, True, True, True]}
 
         self.assertSequenceEqual(expected_field, new_game.field, 'copy')
-        self.assertSequenceEqual(expected_movable_mask, new_game.movable_mask)
+        self.assertEqual(expected_movable_masks, new_game.movable_masks)
         self.assertEqual(Teams.RED, new_game.to_move)
 
         self.assertSequenceEqual(field, game.field, 'copy')
-        self.assertSequenceEqual(mm, game.movable_mask)
+        self.assertSequenceEqual(mm, game.movable_masks)
         self.assertEqual(Teams.BLUE, game.to_move)
 
     def testImpossibleMoveRaises(self):

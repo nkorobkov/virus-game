@@ -74,14 +74,13 @@ if __name__ == '__main__':
 
     policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
 
-    model = LinearValue(8, 8)
-    model_based_explore = ModelBasedPolicy(model, 8, 8, 0.1)
-    model_based = ModelBasedPolicy(model, 8, 8)
+    model = LinearValue(9, 9)
+    model_based_explore = ModelBasedPolicy(model, 9, 9, 0.1)
+    model_based = ModelBasedPolicy(model, 9, 9)
     t = time.time()
-    for _ in range(10):
-        pass
-        play_game_between_policies(model_based_explore,model_based , 8, 8, True)
-    print(time.time() - t)
+    for _ in range(1):
+        play_game_between_policies(model_based_explore, model_based, 9, 9, True)
+        print(time.time() - t)
     # print(compare_deterministic_policies(policyAC, policyMC))
 
-    cProfile.run('play_game_between_policies(model_based, model_based_explore, 8, 8,True)')
+    cProfile.run('play_game_between_policies(model_based, model_based_explore, 9, 9,True)')

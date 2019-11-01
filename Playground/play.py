@@ -101,7 +101,7 @@ def do_user_first_move(game_state: GameState):
     # copied from GameState move
     game_state.transition_single_cell(step)
     game_state.to_move = Teams.other(game_state.to_move)
-    game_state.movable_mask = game_state.get_movable_mask()
+    game_state.movable_masks = game_state.get_movable_masks()
 
 
 def play_with_policy(policy: Policy, h=9, w=9):
@@ -146,7 +146,7 @@ def do_policy_move(game_state: GameState, policy: Policy):
 if __name__ == "__main__":
     evaluator = ColoredCellsCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 3)
-    play_with_policy(policy, 9, 9)
+    play_with_policy(policy, 8, 8 )
 
 
     #model = LinearValue(9, 9)

@@ -13,7 +13,7 @@ class MovableCountEvaluator(Evaluator):
         :return:
         '''
         return game_state.to_move * (
-                sum(game_state.get_all_single_moves_mask()[0]) / sum(game_state.movable_mask))
+                sum(game_state.get_all_single_moves_mask()[0]) / sum(game_state.movable_masks[game_state.to_move]))
 
 
 class ColoredCellsCountEvaluator(Evaluator):

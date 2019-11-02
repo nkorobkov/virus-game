@@ -20,7 +20,7 @@ class LinearValue(torch.nn.Module):
         self.plain_features_weights_count = field_h * field_w * INTERESTING_STATES_COUNT
 
         self.input_size = 1 + \
-                          field_h * field_w * INTERESTING_STATES_COUNT + \
+                          self.plain_features_weights_count + \
                           field_h * (field_w - 1) * HORIZONTAL_KERNELS_COUNT + \
                           (field_h - 1) * field_w * VERTICAL_KERNELS_COUNT + \
                           (field_h - 1) * (field_w - 1) * DIAGONAL_KERNELS_COUNT

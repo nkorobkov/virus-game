@@ -55,12 +55,12 @@ class KernelFeatureExtractor:
         pass
 
     def get_horizontal_kernels(self):
-        res = torch.unsqueeze(torch.tensor(PAIRS + REVERSED_PAIRS), 2)
+        res = torch.unsqueeze(torch.tensor(PAIRS + REVERSED_PAIRS, requires_grad=False), 2)
         res.unsqueeze_(1)
         return res.float()
 
     def get_vertical_kernels(self):
-        res = torch.unsqueeze(torch.tensor(PAIRS + REVERSED_PAIRS), 1)
+        res = torch.unsqueeze(torch.tensor(PAIRS + REVERSED_PAIRS, requires_grad=False), 1)
         res.unsqueeze_(1)
         return res.float()
 
@@ -75,7 +75,7 @@ class KernelFeatureExtractor:
             kernels.append([[a, 0],
                             [0, b]])
 
-        return torch.unsqueeze(torch.tensor(kernels), 1).float()
+        return torch.unsqueeze(torch.tensor(kernels, requires_grad=False), 1).float()
 
     def get_features(self, games):
         # move

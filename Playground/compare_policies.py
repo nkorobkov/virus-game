@@ -11,6 +11,7 @@ from Policy.exceptions import *
 from Game.CellStates import *
 from RL.Model.LinearValue import LinearValue
 import cProfile
+import torch
 
 
 def compare_deterministic_policies(policy1: EstimatingPolicy, policy2: EstimatingPolicy) -> float:
@@ -55,11 +56,12 @@ def play_game_between_policies(policy1: EstimatingPolicy, policy2: EstimatingPol
 
 
 def move(game: GameState, policy: EstimatingPolicy, show_steps: bool):
-    move = policy.get_move(game)
+    value, move = policy.get_best_option(game)
     game.make_move(move)
     if show_steps:
         game.print_field()
-        print('policy {} checked {} positions to come up with that'.format(policy.name, policy.pos_checked))
+        print('V = {}, policy {} checked {} positions to come up with that'.format(value, policy.name,
+                                                                                   policy.pos_checked))
         print()
 
 
@@ -69,18 +71,21 @@ if __name__ == '__main__':
     evaluatorBid = BidirectionalStepsWithWeightEval()
 
     policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
-    policyAC = MiniMaxPolicy(evaluatorActiveCells, 2)
+    policyAC = MiniMaxPolicy(evaluatorActiveCells, 1)
     policyBD = MiniMaxPolicy(evaluatorBid, 2)
 
     policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
 
-    model = LinearValue(9, 9)
-    model_based_explore = ModelBasedPolicy(model, 9, 9, 0.1)
-    model_based = ModelBasedPolicy(model, 9, 9)
+    model = LinearValue(8, 8)
+    model.load_state_dict(torch.load('../RL/learning/data/linear.pt'))
+    model.eval()
+
+    model_based = ModelBasedPolicy(model, 8, 8, 0.)
+
     t = time.time()
     for _ in range(1):
-        play_game_between_policies(model_based_explore, model_based, 9, 9, True)
-        print(time.time() - t)
+        play_game_between_policies(model_based, model_based, 8, 8, True, True)
+        print(_, time.time() - t)
     # print(compare_deterministic_policies(policyAC, policyMC))
 
-    cProfile.run('play_game_between_policies(model_based, model_based_explore, 9, 9,True)')
+    # cProfile.run('play_game_between_policies(model_based, model_based_explore, 9, 9,True)')

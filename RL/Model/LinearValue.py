@@ -26,7 +26,7 @@ class LinearValue(torch.nn.Module):
                           (field_h - 1) * (field_w - 1) * DIAGONAL_KERNELS_COUNT
 
         self.linear = torch.nn.Linear(self.input_size, 1)
-        self.init_weight_for_kernel_features()
+        #self.init_weight_for_kernel_features()
 
     def init_weight_for_kernel_features(self):
         weight_for_move = torch.tensor([2.])

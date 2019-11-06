@@ -2,6 +2,7 @@ from Game.GameState import GameState
 from typing import List
 import torch.nn.functional as F
 import torch
+from RL.Feature.FeatureExtractor import FeatureExtractor
 
 RAF = -2
 RBF = -1
@@ -14,7 +15,7 @@ PAIRS = [[BBF, RAF], [BAF, RBF], [BAF, RAF], [BAF, BBF], [RAF, RBF]]
 REVERSED_PAIRS = [[b, a] for a, b in PAIRS]
 
 
-class KernelFeatureExtractor:
+class KernelFeatureExtractor(FeatureExtractor):
     def __init__(self):
         self.v_kernels = self.get_vertical_kernels()
         self.h_kernels = self.get_horizontal_kernels()

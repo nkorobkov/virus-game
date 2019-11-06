@@ -39,7 +39,7 @@ class GameState:
             self.movable_masks: MaskDict = None
 
     @classmethod
-    def from_field_list(cls, h: int, w: int, field: Field, to_move: Teams):
+    def from_field_list(cls, h: int, w: int, field: Field, to_move: TeamsType):
         if not h * w == len(field):
             raise UnexpectedFieldSizeError("field size does not match dimensions")
         game = GameState(h, w)
@@ -203,7 +203,7 @@ class GameState:
 
     def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask,
                                                active_bases_seen: Set[int]) \
-            -> Tuple[List[Position], DefaultDict[Position, Set], DefaultDict[Position, List]]:
+            -> Tuple[List[List[Position]], DefaultDict[Position, Set], DefaultDict[Position, List]]:
 
         double_moves = []
         second_to_firsts = defaultdict(set)

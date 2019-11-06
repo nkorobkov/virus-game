@@ -1,14 +1,16 @@
-from Policy.Policy import Policy
+from Policy.Policy import EstimatingPolicy
 from Game.GameState import GameState
 from Policy.exceptions import *
 from random import choice
 
 
-class RandomPolicy(Policy):
+class RandomPolicy(EstimatingPolicy):
     name = 'Random'
 
-    def get_move(self, game_state: GameState):
+
+    def get_best_option(self, game_state:GameState):
+
         moves = list(game_state.get_all_moves())
         if not moves:
             raise NoValidMovesException(game_state.to_move, 'No move for {}'.format(game_state.to_move))
-        return choice(moves)
+        return 0, choice(moves)

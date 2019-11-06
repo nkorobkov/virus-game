@@ -34,12 +34,9 @@ class ModelBasedPolicy(EstimatingPolicy):
             if random.random() < self.exploration:
                 v.squeeze_(1)
                 v = v.numpy()
-                #print(v)
                 v += abs(v.min())
                 v /= v.sum()
-                #print(v.shape, v)
                 i = numpy.random.choice(range(len(moves)), p=v)
-                #print(i, moves[i])
                 return v[i], moves[i]
 
 

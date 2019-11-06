@@ -4,21 +4,16 @@ from Policy.Policy import EstimatingPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.PartialMiniMaxPolicy import PartialMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
+from Policy.RandomPolicy import RandomPolicy
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Policy.ModelBasedPolicy import ModelBasedPolicy
-from Game.GameState import GameState
+from Game.GameState import GameState, Position
 from Policy.exceptions import *
 from Game.CellStates import *
 from RL.Model.LinearValue import LinearValue
+from RL.Model.SingleLayerValue import SingleLayerValue
 import cProfile
 import torch
-
-
-def compare_deterministic_policies(policy1: EstimatingPolicy, policy2: EstimatingPolicy) -> float:
-    fpw = int(play_game_between_policies(policy1, policy2, 9, 9, show=True))
-    fpw += int(not play_game_between_policies(policy2, policy1, 9, 9, show=True))
-
-    return fpw
 
 
 def play_game_between_policies(policy1: EstimatingPolicy, policy2: EstimatingPolicy, h=9, w=9, show=False,
@@ -44,13 +39,12 @@ def play_game_between_policies(policy1: EstimatingPolicy, policy2: EstimatingPol
             break
         move_count += 1
 
-    str_tmp = 'Winner is {} (playing for {}), in {} moves'
-    if winning_team == Teams.BLUE:
-        print(str_tmp.format(policy1.name, CellStates.symbol(CellStates.BLUE_BASE), move_count))
-    else:
-        print(str_tmp.format(policy2.name, CellStates.symbol(CellStates.RED_BASE), move_count))
-
     if show:
+        str_tmp = 'Winner is {} (playing for {}), in {} moves'
+        if winning_team == Teams.BLUE:
+            print(str_tmp.format(policy1.name, CellStates.symbol(CellStates.BLUE_BASE), move_count))
+        else:
+            print(str_tmp.format(policy2.name, CellStates.symbol(CellStates.RED_BASE), move_count))
         game.print_field()
     return winning_team == Teams.BLUE
 
@@ -65,6 +59,16 @@ def move(game: GameState, policy: EstimatingPolicy, show_steps: bool):
         print()
 
 
+def compare_policies(evaluated: EstimatingPolicy, compare_to: EstimatingPolicy, n, h, w, show=False, show_steps=False):
+    t = time.time()
+    wins = 0
+    for _ in range(n):
+        wins += 0 if play_game_between_policies(compare_to, evaluated, h, w, show, show_steps) else 1
+        wins += play_game_between_policies(evaluated, compare_to, h, w, show, show_steps)
+
+    print('win rate of {}:  {}/{}  evaluation took: {}'.format(evaluated.name, wins, n * 2, time.time() - t))
+
+
 if __name__ == '__main__':
     evaluatorActiveCells = ColoredCellsCountEvaluator()
     evaluatorMoveCount = MovableCountEvaluator()
@@ -72,20 +76,23 @@ if __name__ == '__main__':
 
     policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 1)
-    policyBD = MiniMaxPolicy(evaluatorBid, 2)
+    policyAC2 = MiniMaxPolicy(evaluatorActiveCells, 2)
 
+    policyBD = MiniMaxPolicy(evaluatorBid, 2)
+    policy_random = RandomPolicy()
     policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
 
-    model = LinearValue(8, 8)
-    model.load_state_dict(torch.load('../RL/learning/data/linear.pt'))
+    h, w = 5, 5
+    model = SingleLayerValue(h, w, 50)
+    model.load_state_dict(torch.load('../RL/learning/data/linear4.pt'))
     model.eval()
 
-    model_based = ModelBasedPolicy(model, 8, 8, 0.)
+    model_based = ModelBasedPolicy(model, h, w, 0.1)
 
-    t = time.time()
-    for _ in range(1):
-        play_game_between_policies(model_based, model_based, 8, 8, True, True)
-        print(_, time.time() - t)
+    evaluated = model_based
+    compare_to = policyAC
+
+    compare_policies(evaluated, compare_to, 1, h, w, True,True)
     # print(compare_deterministic_policies(policyAC, policyMC))
 
     # cProfile.run('play_game_between_policies(model_based, model_based_explore, 9, 9,True)')

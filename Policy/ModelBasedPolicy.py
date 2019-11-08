@@ -9,13 +9,13 @@ import torch
 
 class ModelBasedPolicy(EstimatingPolicy):
 
-    def __init__(self, model, h, w, exploration=0):
+    def __init__(self, model, feature_extractor, h, w,exploration=0):
         self.model = model
         self.h = h
         self.w = w
         self.exploration = exploration
 
-        self.feature_extractor = KernelFeatureExtractor()
+        self.feature_extractor = feature_extractor
 
         self.name = model.name
 
@@ -39,11 +39,7 @@ class ModelBasedPolicy(EstimatingPolicy):
                 i = numpy.random.choice(range(len(moves)), p=v)
                 return v[i], moves[i]
 
-
-
-        if game_state.to_move == Teams.BLUE:
-            best_move_value, best_move_index = v.max(0)
-        else:
-            best_move_value, best_move_index = v.min(0)
+        # we minimize quality of position for moving player (opponent) prediction of the net for next state.
+        best_move_value, best_move_index = v.min(0)
         # print(best_move_value)
-        return best_move_value, moves[best_move_index]
+        return best_move_value, moves[int(best_move_index)]

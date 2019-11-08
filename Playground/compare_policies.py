@@ -2,6 +2,7 @@ import time
 
 from Policy.Policy import EstimatingPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
+from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.PartialMiniMaxPolicy import PartialMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Policy.RandomPolicy import RandomPolicy
@@ -12,6 +13,9 @@ from Policy.exceptions import *
 from Game.CellStates import *
 from RL.Model.LinearValue import LinearValue
 from RL.Model.SingleLayerValue import SingleLayerValue
+from RL.Model.ThreeLayerValue import ThreeLayerValue
+from RL.Model.ConvolutionValue import ConvolutionValue
+from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
 import cProfile
 import torch
 
@@ -66,7 +70,7 @@ def compare_policies(evaluated: EstimatingPolicy, compare_to: EstimatingPolicy, 
         wins += 0 if play_game_between_policies(compare_to, evaluated, h, w, show, show_steps) else 1
         wins += play_game_between_policies(evaluated, compare_to, h, w, show, show_steps)
 
-    print('win rate of {}:  {}/{}  evaluation took: {}'.format(evaluated.name, wins, n * 2, time.time() - t))
+    print('win rate of {}:  {}/{}  evaluation took: {:.3}'.format(evaluated.name, wins, n * 2, time.time() - t))
 
 
 if __name__ == '__main__':
@@ -77,22 +81,30 @@ if __name__ == '__main__':
     policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 1)
     policyAC2 = MiniMaxPolicy(evaluatorActiveCells, 2)
+    policyAC2_r = ExplorativeMiniMaxPolicy(evaluatorActiveCells, 0.05, 2)
 
     policyBD = MiniMaxPolicy(evaluatorBid, 2)
     policy_random = RandomPolicy()
     policy_partial_ac = PartialMiniMaxPolicy(evaluatorActiveCells, lambda x: 100, 4)
 
     h, w = 5, 5
-    model = SingleLayerValue(h, w, 50)
-    model.load_state_dict(torch.load('../RL/learning/data/linear4.pt'))
+    model = ConvolutionValue(h, w)
+    model.load_state_dict(torch.load('../RL/learning/data/model5-conv-disc.pt'))
     model.eval()
 
-    model_based = ModelBasedPolicy(model, h, w, 0.1)
+    model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.1)
+
+    model2 = ConvolutionValue(h, w)
+    model2.load_state_dict(torch.load('../RL/learning/data/model5-conv-no-disc.pt'))
+    model2.eval()
+
+    model_based2 = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.1)
 
     evaluated = model_based
-    compare_to = policyAC
+    compare_to = policyAC2
 
-    compare_policies(evaluated, compare_to, 1, h, w, True,True)
+    compare_policies(evaluated, compare_to, 50, h, w, False, False)
+
     # print(compare_deterministic_policies(policyAC, policyMC))
 
     # cProfile.run('play_game_between_policies(model_based, model_based_explore, 9, 9,True)')

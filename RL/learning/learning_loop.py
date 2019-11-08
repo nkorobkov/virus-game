@@ -2,21 +2,25 @@
 
 import torch
 import torch.nn
+
+from RL.Model.ThreeLayerValue import ThreeLayerValue
+from RL.Model.ConvolutionValue import ConvolutionValue
 from RL.learning.DataSampler import DataSampler
 from RL.Model.LinearValue import LinearValue
 from RL.Model.SingleLayerValue import SingleLayerValue
 from Playground.compare_policies import compare_policies
 from Policy.ModelBasedPolicy import ModelBasedPolicy
-from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
+from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator
 from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
-from RL.Feature.KernelFeatures import KernelFeatureExtractor
+from RL.learning.util import readable_time_since
+from time import time
 
 
 class Trainer:
 
     def __init__(self, model, data_sampler, save_path='data/model.pt', self_play_batch_size=500,
-                 train_epoch_count=800, minibatch_size=64, test_percentage=0.2, gamma=0.95, learning_rate=0.1):
+                 train_epoch_count=800, minibatch_size=64, test_percentage=0.2, gamma=0.9, learning_rate=0.001):
         self.model = model
         self.data_sampler: DataSampler = data_sampler
         self.save_path = save_path
@@ -30,19 +34,22 @@ class Trainer:
 
     def training_loop(self):
 
-        data = self.data_sampler.sample_data_by_self_play_with_model(self.model, self.self_play_batch_size)
-        torch.save(data, 'data/selfplay.pt')
+        features, labels = self.data_sampler.sample_data_by_self_play_with_model(self.model, self.self_play_batch_size)
+        torch.save(features, 'data/selfplay-f.pt')
+        torch.save(labels, 'data/selfplay-l.pt')
 
-        self.train_on_data(data, self.train_epoch_count)
-        torch.save(model.state_dict(), self.save_path)
-        self.evaluate_model(data)
+        self.train_on_data(features, labels, self.train_epoch_count)
+        torch.save(self.model.state_dict(), self.save_path)
+        self.evaluate_model(labels)
 
-    def train_on_data(self, data, epoch_count, print_every=50):
-        train_features, train_game_values, test_features, test_game_values = self.split_data(data)
-        optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate)
+    def train_on_data(self, features, labels, epoch_count, print_every=50, eval_every=200):
+
+        train_features, train_game_values, test_features, test_game_values = self.split_data(features, labels)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         criterion = torch.nn.MSELoss()
-
+        t = time()
         for epoch in range(epoch_count):
+            self.model.train(True)
             for i in range(0, train_features.shape[0] // self.minibatch_size):
                 batch_features = train_features[i * self.minibatch_size: (i + 1) * self.minibatch_size, :]
                 batch_values = train_game_values[i * self.minibatch_size: (i + 1) * self.minibatch_size]
@@ -59,24 +66,28 @@ class Trainer:
                 optimizer.step()
 
             if (epoch + 1) % print_every == 0:
+                self.model.train(False)
                 with torch.no_grad():
-                    pred_game_values = model(test_features)
+                    pred_game_values = self.model.forward(test_features)
                     pred_game_values = pred_game_values.squeeze(1)
                     test_loss = criterion(pred_game_values, test_game_values)
-                print('epoch {}, loss {:.5}, test loss: {:.5}'.format(epoch + 1, loss, test_loss))
+                print('epoch {}, loss {:.5}, test loss: {:.5}, time elapsed: {}'.format(epoch + 1, loss, test_loss,
+                                                                                        readable_time_since(t)))
+            if (epoch + 1) % eval_every == 0:
+                self.evaluate_model(labels)
 
-    def split_data(self, data):
-        features = data[:, : self.model.input_size]
+    def split_data(self, features, labels):
+
         # -1 == winner
         # -2 == moves till end
         # -3 == next state value
 
         # Important place, we chose what to optimise here
 
-        game_values = self.get_target_from_data(data)
+        game_values = self.get_target_from_labels(labels)
 
         # features, predicted_value, moves_till_end, game_result
-        train_n = int(data.shape[0] * (1 - self.test_percentage))
+        train_n = int(features.shape[0] * (1 - self.test_percentage))
 
         train_features = features[:train_n]
         test_features = features[train_n:]
@@ -85,37 +96,46 @@ class Trainer:
 
         return train_features, train_game_values, test_features, test_game_values
 
-    def get_target_from_data(self, data):
-        return data[:, -1] * (self.gamma ** data[:, -2])
+    def get_target_from_labels(self, labels):
 
-    def evaluate_model(self, data):
-        h, w = self.model.field_h, model.field_w
-        model_policy = ModelBasedPolicy(model, h, w, 0.1)
-        compare_to = MiniMaxPolicy(ColoredCellsCountEvaluator(), 1)
-        compare_policies(model_policy, compare_to, 50, h, w)
-        target = self.get_target_from_data(data)
+        return labels[:, -1] #* (self.gamma ** labels[:, -2])
+
+    def evaluate_model(self, labels):
+        self.model.train(False)
+        h, w = self.model.field_h, self.model.field_w
+        model_policy = ModelBasedPolicy(self.model, self.data_sampler.feature_extractor, h, w)
+        compare_to = ExplorativeMiniMaxPolicy(ColoredCellsCountEvaluator(), exploration_rate=0.1, depth=2)
+        compare_policies(model_policy, compare_to, 10, h, w)
+        target = self.get_target_from_labels(labels)
+        self.print_linear_weights_stat()
+
         default_prediction_loss = ((abs(target - target.mean())).mean() ** 2)
-        weights = torch.tensor([i for x in list(model.linear.weight) for i in x])
-
-        print('max/mean/min/std weight: {:.3}/{:.3}/{:.3}/{:.3}'.format(weights.max(), weights.mean(), weights.min(),weights.std()))
         print('mse loss on mean over batch prediction  = {:.3}'.format(default_prediction_loss))
+
+    def print_linear_weights_stat(self):
+        ln = 1
+        for m in self.model.modules():
+            if isinstance(m, torch.nn.Linear):
+                print('Linear Layer {}, in: {}, out: {} max/mean/min/std weight: {:.3}/{:.3}/{:.3}/{:.3}'.format(
+                    ln, m.in_features, m.out_features, m.weight.max(), m.weight.mean(), m.weight.min(), m.weight.std()))
+                ln += 1
 
 
 if __name__ == '__main__':
-    feature_extractor = KernelFeatureExtractor()
+    feature_extractor = PlainFeatureExtractor()
     data_sampler = DataSampler(feature_extractor)
-    model = SingleLayerValue(5, 5, 100)
+    model = ConvolutionValue(5, 5)
 
     # model = SingleLayerValue(5, 5, 50)
 
     # model.load_state_dict(torch.load('data/linear4.pt'))
     # model.eval()
 
-    trainer = Trainer(model, data_sampler, 'data/model5.pt', self_play_batch_size=10, minibatch_size=5,
-                      train_epoch_count=50)
-    data = torch.load('data/selfplay_AC2_20000_games.pt')
-    data = data.float()
+    features = torch.load('data/selfplay_AC2_25000_games-plain-features-u.pt').float()
+    labels = torch.load('data/selfplay_AC2_25000_games-plain-labels-u.pt').float()
+    print(features.shape)
+    trainer = Trainer(model, data_sampler, minibatch_size=64)
 
-    for i in range(5):
-        trainer.train_on_data(data, 1, print_every=1)
-        trainer.evaluate_model(data)
+    trainer.train_on_data(features, labels, 60, 3, 12)
+
+    torch.save(trainer.model.state_dict(), 'data/model5-conv-no-disc.pt')

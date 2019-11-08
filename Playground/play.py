@@ -6,15 +6,11 @@ from os.path import dirname, join, abspath
 
 sys.path.insert(0, abspath(join(dirname(__file__), '..')))
 
-# TODO make separate play file for presentation that would not use  dependencies
-#from Policy.ModelBasedPolicy import ModelBasedPolicy
-#from RL.Model.LinearValue import LinearValue
 
 
 from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
-from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Game.GameState import GameState, Position
 from Playground.const import HELP
 from Playground.exceptions import *
@@ -147,8 +143,4 @@ if __name__ == "__main__":
     evaluator = ColoredCellsCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 3)
     play_with_policy(policy, 8, 8 )
-
-
-    #model = LinearValue(9, 9)
-    #modelBased = ModelBasedPolicy(model,  9, 9)
 

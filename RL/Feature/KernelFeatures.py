@@ -81,10 +81,12 @@ class KernelFeatureExtractor(FeatureExtractor):
     def get_features(self, games):
         # move
         move_feature = torch.tensor([game.to_move for game in games], requires_grad=False).to(torch.int8)
-        move_feature.unsqueeze_(1)
 
         fields = torch.tensor([game.field for game in games], requires_grad=False)
         fields_count = fields.shape[0]
+
+        fields_to_flip = move_feature == -1
+        fields[fields_to_flip] = -fields[fields_to_flip].flip(1)
 
         # positions of all types
         plain_features = torch.cat((fields == 2, fields == 1, fields == -1, fields == -2), dim=1).to(torch.int8)
@@ -99,5 +101,5 @@ class KernelFeatureExtractor(FeatureExtractor):
                                      F.conv2d(fields, self.h_kernels).view(fields_count, -1),
                                      F.conv2d(fields, self.d_kernels).view(fields_count, -1)), dim=1) == 4
         kernel_features = kernel_features.to(torch.int8)
-        features = torch.cat((move_feature, plain_features, kernel_features), dim=1)
+        features = torch.cat((plain_features, kernel_features), dim=1)
         return features

@@ -116,9 +116,12 @@ def play_with_policy(policy: Policy, h=9, w=9):
             t = time()
             do_policy_move(game, policy)
             print('Policy made a move in {:.2} sec. It checked {} positions'.format(time() - t, policy.pos_checked))
-            if not list(game.get_all_moves()):
+            if list(game.get_all_moves()):
+                do_user_move(game)
+            else:
+                # game state has no valid moves --> player lost
                 winner = -1
-            do_user_move(game)
+                break
         except NoValidMovesException:
             winner = 1
             break

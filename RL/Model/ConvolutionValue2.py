@@ -18,9 +18,12 @@ class ConvolutionValue2(torch.nn.Module):
         self.field_h = field_h
         self.field_w = field_w
 
-        self.conv1_size = 32
-        self.conv2_size = 64
-        self.dense_size = 256
+        self.conv1_size = 64
+        self.conv2_size = 128
+        self.conv3_size = 256
+
+        self.dense_1_size = 512
+
         self.dropout = torch.nn.Dropout(p=0.5)
 
         self.conv1 = torch.nn.Conv2d(INTERESTING_STATES_COUNT, self.conv1_size, (3, 3), padding=1, bias=False)
@@ -29,16 +32,22 @@ class ConvolutionValue2(torch.nn.Module):
         self.conv2 = torch.nn.Conv2d(self.conv1_size, self.conv2_size, (3, 3), padding=1, bias=False)
         self.bn2 = torch.nn.BatchNorm2d(self.conv2_size)
 
-        self.fc1 = torch.nn.Linear(self.conv2_size * self.field_w * self.field_h, self.dense_size)
-        self.fc_bn1 = torch.nn.BatchNorm1d(self.dense_size)
+        self.conv3 = torch.nn.Conv2d(self.conv2_size, self.conv3_size, (3, 3), padding=1, bias=False)
+        self.bn3 = torch.nn.BatchNorm2d(self.conv3_size)
 
-        self.out = torch.nn.Linear(self.dense_size, 1)
+        self.fc1 = torch.nn.Linear(self.conv3_size * self.field_w * self.field_h, self.dense_1_size)
+        self.fc_bn1 = torch.nn.BatchNorm1d(self.dense_1_size)
+
+        self.out = torch.nn.Linear(self.dense_1_size, 1)
 
     def forward(self, x):
         s = F.relu(self.bn1(self.conv1(x)))
         s = F.relu(self.bn2(self.conv2(s)))
-        s = s.view(-1, self.conv2_size * self.field_w * self.field_h)
-        s = self.dropout(F.relu(self.fc_bn1(self.fc1(s))))
+        s = F.relu(self.bn3(self.conv3(s)))
+        s = s.view(-1, self.conv3_size * self.field_w * self.field_h)
+        s = self.dropout(s)
+        s = F.relu(self.fc_bn1(self.fc1(s)))
+        s = self.dropout(s)
 
         #  finally doing tanh to get value
         out = torch.tanh(self.out(s))
@@ -46,7 +55,6 @@ class ConvolutionValue2(torch.nn.Module):
 
 
 if __name__ == '__main__':
-
     feature_extractor = PlainFeatureExtractor()
     data_sampler = DataSampler(feature_extractor)
     features, labels = data_sampler.sample_data_by_self_play_with_policy(RandomPolicy(), 5, 5, 5, True)
@@ -62,4 +70,3 @@ if __name__ == '__main__':
     print(a.std())
     print(a.max())
     print(a.min())
-

@@ -4,6 +4,7 @@ from Policy.Policy import EstimatingPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.PartialMiniMaxPolicy import PartialMiniMaxPolicy
+from MiniMaxPolicy.ModelGuidedMiniMax import ModelGuidedMiniMax
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Policy.RandomPolicy import RandomPolicy
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
@@ -11,6 +12,7 @@ from Policy.ModelBasedPolicy import ModelBasedPolicy
 from Game.GameState import GameState, Position
 from Policy.exceptions import *
 from Game.CellStates import *
+from RL.Model.ConvolutionValue2 import ConvolutionValue2
 from RL.Model.LinearValue import LinearValue
 from RL.Model.SingleLayerValue import SingleLayerValue
 from RL.Model.ThreeLayerValue import ThreeLayerValue
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     policyMC = MiniMaxPolicy(evaluatorMoveCount, 1)
     policyAC = MiniMaxPolicy(evaluatorActiveCells, 1)
     policyAC2 = MiniMaxPolicy(evaluatorActiveCells, 2)
-    policyAC2_r = ExplorativeMiniMaxPolicy(evaluatorActiveCells, 0.05, 2)
+    policyAC2_r = ExplorativeMiniMaxPolicy(evaluatorActiveCells, 0.1, 2)
 
     policyBD = MiniMaxPolicy(evaluatorBid, 2)
     policy_random = RandomPolicy()
@@ -93,17 +95,19 @@ if __name__ == '__main__':
     model.eval()
 
     model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.1)
+    model_guided = ModelGuidedMiniMax(model, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 30, depth=3,
+                                      exploration_rate=0.1)
 
     model2 = ConvolutionValue(h, w)
-    model2.load_state_dict(torch.load('../RL/learning/data/model5-conv-no-disc.pt'))
+    model2.load_state_dict(torch.load('../RL/learning/data/model5-conv-disc.pt'))
     model2.eval()
 
     model_based2 = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.1)
 
-    evaluated = model_based
-    compare_to = policyAC2
+    evaluated = model_guided
+    compare_to = policyAC2_r
 
-    compare_policies(evaluated, compare_to, 50, h, w, False, False)
+    compare_policies(evaluated, compare_to, 20, h, w, False, False)
 
     # print(compare_deterministic_policies(policyAC, policyMC))
 

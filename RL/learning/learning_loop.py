@@ -3,6 +3,7 @@
 import torch
 import torch.nn
 
+from RL.Model.ConvolutionValue2 import ConvolutionValue2
 from RL.Model.ThreeLayerValue import ThreeLayerValue
 from RL.Model.ConvolutionValue import ConvolutionValue
 from RL.learning.DataSampler import DataSampler
@@ -75,6 +76,7 @@ class Trainer:
                                                                                         readable_time_since(t)))
             if (epoch + 1) % eval_every == 0:
                 self.evaluate_model(labels)
+                torch.save(self.model.state_dict(), self.save_path)
 
     def split_data(self, features, labels):
 
@@ -98,7 +100,7 @@ class Trainer:
 
     def get_target_from_labels(self, labels):
 
-        return labels[:, -1] #* (self.gamma ** labels[:, -2])
+        return labels[:, -1] * (self.gamma ** labels[:, -2])
 
     def evaluate_model(self, labels):
         self.model.train(False)
@@ -124,18 +126,18 @@ class Trainer:
 if __name__ == '__main__':
     feature_extractor = PlainFeatureExtractor()
     data_sampler = DataSampler(feature_extractor)
-    model = ConvolutionValue(5, 5)
+    model = ConvolutionValue2(5, 5)
 
     # model = SingleLayerValue(5, 5, 50)
 
-    # model.load_state_dict(torch.load('data/linear4.pt'))
+    model.load_state_dict(torch.load('data/model5-conv2-disc.pt'))
     # model.eval()
 
     features = torch.load('data/selfplay_AC2_25000_games-plain-features-u.pt').float()
     labels = torch.load('data/selfplay_AC2_25000_games-plain-labels-u.pt').float()
     print(features.shape)
-    trainer = Trainer(model, data_sampler, minibatch_size=64)
+    trainer = Trainer(model, data_sampler,save_path='data/model5-conv2-disc.pt', minibatch_size=64, gamma=0.9)
 
-    trainer.train_on_data(features, labels, 60, 3, 12)
+    trainer.train_on_data(features, labels, 12, 1, 3)
 
-    torch.save(trainer.model.state_dict(), 'data/model5-conv-no-disc.pt')
+    torch.save(trainer.model.state_dict(), 'data/model5-conv2-disc.pt')

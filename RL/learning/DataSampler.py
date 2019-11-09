@@ -19,8 +19,6 @@ from RL.learning.util import readable_time_since
 from typing import Tuple
 
 
-
-
 class DataSampler:
 
     def __init__(self, feature_extractor: FeatureExtractor, exploration_rate=0.1, win_value=1):
@@ -167,14 +165,13 @@ if __name__ == '__main__':
     evaluator = ColoredCellsCountEvaluator()
 
     policy = ExplorativeMiniMaxPolicy(evaluator, exploration_rate=0.05, depth=2)
-    h, w = 5, 5
-    model = ConvolutionValue(h, w)
-    model.load_state_dict(torch.load('data/model5-conv-disc.pt'))
-    model.eval()
 
-    features, labels = ds.sample_data_by_self_play_with_model(model, 2)
+    features, labels = ds.sample_data_by_self_play_with_policy(policy, n=500, h=8, w=8, augment=True, randomize=True,
+                                                               print_every=5)
 
-    print(labels)
-
-    #torch.save(features, 'data/selfplay_AC2_88_games-plain-features2.pt')
-    #torch.save(labels, 'data/selfplay_AC2_88_games-plain-labels2.pt')
+    torch.save(features, 'data/selfplay_AC2_88_games-plain-features3.pt')
+    torch.save(labels, 'data/selfplay_AC2_88_games-plain-labels3.pt')
+    # h, w = 5, 5
+    # model = ConvolutionValue(h, w)
+    # model.load_state_dict(torch.load('data/model5-conv-disc.pt'))
+    # model.eval()

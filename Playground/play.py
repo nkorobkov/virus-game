@@ -12,7 +12,7 @@ from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
 from Game.GameState import GameState, Position
-from Playground.const import HELP
+from Playground.util import HELP, readable_time_since
 from Playground.exceptions import *
 from Game.exceptions import *
 from Policy.exceptions import *
@@ -103,7 +103,7 @@ def do_user_first_move(game_state: GameState):
 def play_with_policy(policy: Policy, h=9, w=9):
     game = GameState(h, w)
 
-    print('play with policy {} started.'.format(policy.__class__))
+    print('play with policy {} started.'.format(policy.name))
     print('You are in the top left corner.')
     winner = 0
     do_user_first_move(game)
@@ -115,7 +115,7 @@ def play_with_policy(policy: Policy, h=9, w=9):
             print('Your move is accepted, now {} moves.'.format(policy.name))
             t = time()
             do_policy_move(game, policy)
-            print('Policy made a move in {:.2} sec. It checked {} positions'.format(time() - t, policy.pos_checked))
+            print('Policy made a move in {} sec. It checked {} positions'.format(readable_time_since(t), policy.pos_checked))
             if list(game.get_all_moves()):
                 do_user_move(game)
             else:

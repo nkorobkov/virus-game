@@ -3,18 +3,14 @@
 import torch
 import torch.nn
 
-from RL.Model.ConvolutionValue2 import ConvolutionValue2
-from RL.Model.ThreeLayerValue import ThreeLayerValue
 from RL.Model.ConvolutionValue import ConvolutionValue
 from RL.learning.DataSampler import DataSampler
-from RL.Model.LinearValue import LinearValue
-from RL.Model.SingleLayerValue import SingleLayerValue
 from Playground.compare_policies import compare_policies
 from Policy.ModelBasedPolicy import ModelBasedPolicy
 from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator
 from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
-from RL.learning.util import readable_time_since
+from Playground.util import readable_time_since
 from time import time
 
 
@@ -107,7 +103,7 @@ class Trainer:
         h, w = self.model.field_h, self.model.field_w
         model_policy = ModelBasedPolicy(self.model, self.data_sampler.feature_extractor, h, w)
         compare_to = ExplorativeMiniMaxPolicy(ColoredCellsCountEvaluator(), exploration_rate=0.1, depth=2)
-        compare_policies(model_policy, compare_to, 10, h, w)
+        compare_policies(model_policy, compare_to, 5, h, w)
         target = self.get_target_from_labels(labels)
         self.print_linear_weights_stat()
 
@@ -126,18 +122,18 @@ class Trainer:
 if __name__ == '__main__':
     feature_extractor = PlainFeatureExtractor()
     data_sampler = DataSampler(feature_extractor)
-    model = ConvolutionValue2(5, 5)
+    model = ConvolutionValue(8, 8)
 
     # model = SingleLayerValue(5, 5, 50)
 
-    model.load_state_dict(torch.load('data/model5-conv2-disc.pt'))
+    # model.load_state_dict(torch.load('data/model5-conv2-disc.pt'))
     # model.eval()
 
-    features = torch.load('data/selfplay_AC2_25000_games-plain-features-u.pt').float()
-    labels = torch.load('data/selfplay_AC2_25000_games-plain-labels-u.pt').float()
+    features = torch.load('data/selfplay_AC2_88_games-plain-features-u.pt').float()
+    labels = torch.load('data/selfplay_AC2_88_games-plain-labels-u.pt').float()
     print(features.shape)
-    trainer = Trainer(model, data_sampler,save_path='data/model5-conv2-disc.pt', minibatch_size=64, gamma=0.9)
+    trainer = Trainer(model, data_sampler, save_path='data/model8-conv-disc.pt', minibatch_size=64, gamma=0.95)
 
-    trainer.train_on_data(features, labels, 12, 1, 3)
+    trainer.train_on_data(features, labels, 24, 1, 6)
 
-    torch.save(trainer.model.state_dict(), 'data/model5-conv2-disc.pt')
+    torch.save(trainer.model.state_dict(), trainer.save_path)

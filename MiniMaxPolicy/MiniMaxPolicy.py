@@ -20,8 +20,10 @@ class MiniMaxPolicy(EstimatingPolicy):
             return self.get_min(game_state, self.depth)
 
 
-    def get_moves_to_check(self, game_state):
-        return game_state.get_all_moves()
+    def get_moves_and_states_to_check(self, game_state:GameState, depth:int):
+        moves = list(game_state.get_all_moves())
+        next_states = [game_state.get_copy_with_move(move) for move in moves]
+        return zip(moves, next_states)
 
     def get_max(self, game_state, depth, alpha=-1000, betta=1000):
         '''
@@ -38,8 +40,8 @@ class MiniMaxPolicy(EstimatingPolicy):
             return self.evaluator.evaluate(game_state), None
         else:
             top_move = None
-            for move in self.get_moves_to_check(game_state):
-                reward, prev_move = self.get_min(game_state.get_copy_with_move(move), depth - 1, alpha, betta)
+            for move, state in self.get_moves_and_states_to_check(game_state, depth):
+                reward, prev_move = self.get_min(state, depth - 1, alpha, betta)
                 if reward > existing_reward:
                     existing_reward = reward
                     top_move = move
@@ -65,8 +67,8 @@ class MiniMaxPolicy(EstimatingPolicy):
             return self.evaluator.evaluate(game_state), None
         else:
             top_move = None
-            for move in self.get_moves_to_check(game_state):
-                reward, prev_move = self.get_max(game_state.get_copy_with_move(move), depth - 1, alpha, betta)
+            for move, state in self.get_moves_and_states_to_check(game_state, depth):
+                reward, prev_move = self.get_max(state, depth - 1, alpha, betta)
                 if reward < existing_reward:
                     existing_reward = reward
                     top_move = move

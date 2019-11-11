@@ -1,6 +1,4 @@
 import time
-from time import strftime
-from time import gmtime
 import torch
 import torch.nn
 import numpy.random
@@ -14,8 +12,7 @@ from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator
 from random import choice
 
-from RL.Model.ConvolutionValue import ConvolutionValue
-from RL.learning.util import readable_time_since
+from Playground.util import readable_time_since
 from typing import Tuple
 
 
@@ -158,15 +155,13 @@ class DataSampler:
 
 
 if __name__ == '__main__':
-    from pprint import pprint
-
     ds = DataSampler(feature_extractor=PlainFeatureExtractor())
 
     evaluator = ColoredCellsCountEvaluator()
 
-    policy = ExplorativeMiniMaxPolicy(evaluator, exploration_rate=0.05, depth=2)
+    policy = ExplorativeMiniMaxPolicy(evaluator, exploration_rate=0.08, depth=2)
 
-    features, labels = ds.sample_data_by_self_play_with_policy(policy, n=500, h=8, w=8, augment=True, randomize=True,
+    features, labels = ds.sample_data_by_self_play_with_policy(policy, n=2000, h=8, w=8, augment=True, randomize=True,
                                                                print_every=5)
 
     torch.save(features, 'data/selfplay_AC2_88_games-plain-features3.pt')

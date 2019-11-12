@@ -3,17 +3,20 @@ import torch
 import torch.nn
 import numpy.random
 from Game.GameState import GameState
+from Policy.ModelBasedPolicy import ModelBasedPolicy
 from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
 from Policy.exceptions import NoValidMovesException
 from Game.Teams import Teams
 from Policy.Policy import EstimatingPolicy
 from RL.Feature.FeatureExtractor import FeatureExtractor
 from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import ActiveCountEvaluator
 from random import choice
 
 from Playground.util import readable_time_since
 from typing import Tuple
+
+from RL.Model.ConvolutionValue import ConvolutionValue
 
 
 class DataSampler:
@@ -157,15 +160,18 @@ class DataSampler:
 if __name__ == '__main__':
     ds = DataSampler(feature_extractor=PlainFeatureExtractor())
 
-    evaluator = ColoredCellsCountEvaluator()
+    h,w = 8,8
+    model_new_6_epoch = ConvolutionValue(h, w)
+    model_new_6_epoch.load_state_dict(torch.load('    data/model8-conv-disc2-10iz10.pt'))
+    model_new_6_epoch.eval()
 
-    policy = ExplorativeMiniMaxPolicy(evaluator, exploration_rate=0.08, depth=2)
+    model_6 = ModelBasedPolicy(model_new_6_epoch, PlainFeatureExtractor(), h, w, 0.1)
 
-    features, labels = ds.sample_data_by_self_play_with_policy(policy, n=2000, h=8, w=8, augment=True, randomize=True,
+    features, labels = ds.sample_data_by_self_play_with_policy(model_6, n=500, h=8, w=8, augment=True, randomize=True,
                                                                print_every=5)
 
-    torch.save(features, 'data/selfplay_AC2_88_games-plain-features3.pt')
-    torch.save(labels, 'data/selfplay_AC2_88_games-plain-labels3.pt')
+    torch.save(features, 'data/selfplay_MOD6_88_games-plain-features.pt')
+    torch.save(labels, 'data/selfplay_MOD6_88_games-plain-labels.pt')
     # h, w = 5, 5
     # model = ConvolutionValue(h, w)
     # model.load_state_dict(torch.load('data/model5-conv-disc.pt'))

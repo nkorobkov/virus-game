@@ -8,7 +8,7 @@ import cProfile
 
 
 stepcount_ev = MovableCountEvaluator()
-colored_cells_ev = ColoredCellsCountEvaluator()
+colored_cells_ev = ActiveCountEvaluator()
 bid_ev = BidirectionalStepsWithWeightEval()
 
 evals = [stepcount_ev, colored_cells_ev, bid_ev]

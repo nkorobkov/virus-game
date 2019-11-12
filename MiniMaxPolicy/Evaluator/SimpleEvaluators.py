@@ -16,8 +16,8 @@ class MovableCountEvaluator(Evaluator):
                 sum(game_state.get_all_single_moves_mask()[0]) / sum(game_state.movable_masks[game_state.to_move]))
 
 
-class ColoredCellsCountEvaluator(Evaluator):
-    name = 'active cells count'
+class ActiveCountEvaluator(Evaluator):
+    name = 'AC'
 
     def evaluate(self, game_state: GameState) -> float:
-        return sum(game_state.field) / len(game_state.field)
+        return sum(game_state.field) / (2*len(game_state.field))

@@ -9,13 +9,13 @@ import unittest
 
 class TestMimiMaxBasic(BaseCasesTests.TestPolicyBasics):
     def setUp(self):
-        evaluator = ColoredCellsCountEvaluator()
+        evaluator = ActiveCountEvaluator()
         self.policy = MiniMaxPolicy(evaluator, 1)
 
 
 class TestMiniMaxDepth1(unittest.TestCase):
     def setUp(self):
-        evaluator = ColoredCellsCountEvaluator()
+        evaluator = ActiveCountEvaluator()
         self.policy = MiniMaxPolicy(evaluator, 1)
 
     def testCanGetOnlyBase(self):
@@ -54,7 +54,7 @@ class TestMiniMaxDepth1(unittest.TestCase):
 
 class TestMiniMaxDepth2(unittest.TestCase):
     def setUp(self):
-        evaluator = ColoredCellsCountEvaluator()
+        evaluator = ActiveCountEvaluator()
         self.policy = MiniMaxPolicy(evaluator, 2)
 
     def testCanGetOnlyBase(self):

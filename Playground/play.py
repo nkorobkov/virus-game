@@ -2,15 +2,11 @@ import sys
 
 from os.path import dirname, join, abspath
 
-
-
 sys.path.insert(0, abspath(join(dirname(__file__), '..')))
-
-
 
 from Policy.Policy import Policy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ActiveCountEvaluator
 from Game.GameState import GameState, Position
 from Playground.util import HELP, readable_time_since
 from Playground.exceptions import *
@@ -115,7 +111,8 @@ def play_with_policy(policy: Policy, h=9, w=9):
             print('Your move is accepted, now {} moves.'.format(policy.name))
             t = time()
             do_policy_move(game, policy)
-            print('Policy made a move in {} sec. It checked {} positions'.format(readable_time_since(t), policy.pos_checked))
+            print('Policy made a move in {} sec. It checked {} positions'.format(readable_time_since(t),
+                                                                                 policy.pos_checked))
             if list(game.get_all_moves()):
                 do_user_move(game)
             else:
@@ -143,7 +140,6 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 
 if __name__ == "__main__":
-    evaluator = ColoredCellsCountEvaluator()
+    evaluator = ActiveCountEvaluator()
     policy = MiniMaxPolicy(evaluator, 3)
-    play_with_policy(policy, 8, 8 )
-
+    play_with_policy(policy, 8, 8)

@@ -6,7 +6,7 @@ import unittest
 class TestColoredCellsCounterEvaluator(BaseCasesTests.BaseTestAnyEvaluator):
 
     def setUp(self):
-        self.evaluator = ColoredCellsCountEvaluator()
+        self.evaluator = ActiveCountEvaluator()
 
     def testNewField(self):
         game = GameState(5, 5)

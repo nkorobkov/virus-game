@@ -4,5 +4,6 @@ HELP = '''\
 Print position of your first step on form of 2 integers separated by space. 
 Pring "exit" to stop the game.'''
 
+
 def readable_time_since(t):
     return strftime("%M m. %S sec.", gmtime(int(time() - t)))

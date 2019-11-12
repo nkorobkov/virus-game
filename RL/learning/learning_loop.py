@@ -8,7 +8,7 @@ from RL.learning.DataSampler import DataSampler
 from Playground.compare_policies import compare_policies
 from Policy.ModelBasedPolicy import ModelBasedPolicy
 from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import ColoredCellsCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import ActiveCountEvaluator
 from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
 from Playground.util import readable_time_since
 from time import time
@@ -72,7 +72,7 @@ class Trainer:
                                                                                         readable_time_since(t)))
             if (epoch + 1) % eval_every == 0:
                 self.evaluate_model(labels)
-                torch.save(self.model.state_dict(), self.save_path)
+                torch.save(self.model.state_dict(), self.save_path.format(epoch))
 
     def split_data(self, features, labels):
 
@@ -101,9 +101,15 @@ class Trainer:
     def evaluate_model(self, labels):
         self.model.train(False)
         h, w = self.model.field_h, self.model.field_w
-        model_policy = ModelBasedPolicy(self.model, self.data_sampler.feature_extractor, h, w)
-        compare_to = ExplorativeMiniMaxPolicy(ColoredCellsCountEvaluator(), exploration_rate=0.1, depth=2)
-        compare_policies(model_policy, compare_to, 5, h, w)
+        model_policy = ModelBasedPolicy(self.model, self.data_sampler.feature_extractor, h, w, exploration=0.05)
+
+        model_new_6_epoch = ConvolutionValue(h, w)
+        model_new_6_epoch.load_state_dict(torch.load('data/model8-conv-disc2-10iz10.pt'))
+        model_new_6_epoch.eval()
+        model_6 = ModelBasedPolicy(model_new_6_epoch, PlainFeatureExtractor(), h, w, 0.05)
+        compare_to = model_6
+
+        compare_policies(model_policy, compare_to, 8, h, w)
         target = self.get_target_from_labels(labels)
         self.print_linear_weights_stat()
 
@@ -124,16 +130,14 @@ if __name__ == '__main__':
     data_sampler = DataSampler(feature_extractor)
     model = ConvolutionValue(8, 8)
 
-    # model = SingleLayerValue(5, 5, 50)
-
-    # model.load_state_dict(torch.load('data/model5-conv2-disc.pt'))
+    #model.load_state_dict(torch.load('data/model8-conv-disc2.pt'))
     # model.eval()
 
     features = torch.load('data/selfplay_AC2_88_games-plain-features-u.pt').float()
     labels = torch.load('data/selfplay_AC2_88_games-plain-labels-u.pt').float()
     print(features.shape)
-    trainer = Trainer(model, data_sampler, save_path='data/model8-conv-disc.pt', minibatch_size=64, gamma=0.95)
+    trainer = Trainer(model, data_sampler, save_path='data/model8-conv-disc-{}-ep-95.pt', minibatch_size=64, gamma=0.95)
 
-    trainer.train_on_data(features, labels, 24, 1, 6)
+    trainer.train_on_data(features, labels, 15, 1, 1)
 
     torch.save(trainer.model.state_dict(), trainer.save_path)

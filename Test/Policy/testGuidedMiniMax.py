@@ -9,7 +9,7 @@ import unittest
 
 class TestMimiMaxBasic(BaseCasesTests.TestPolicyBasics):
     def setUp(self):
-        evaluator = ColoredCellsCountEvaluator()
+        evaluator = ActiveCountEvaluator()
         model = LinearValue(3, 3)
         fe = KernelFeatureExtractor()
         self.policy = ModelGuidedMiniMax(model, fe, 3, 3, evaluator, lambda x: x // 2 + 1, depth=1)

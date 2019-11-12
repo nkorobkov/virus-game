@@ -1,10 +1,11 @@
 import time
 
+from Policy.ModelTreeD2Policy import ModelTreeD2Policy
 from Policy.Policy import EstimatingPolicy
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from MiniMaxPolicy.ModelGuidedMiniMax import ModelGuidedMiniMax
-from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ColoredCellsCountEvaluator
+from MiniMaxPolicy.Evaluator.SimpleEvaluators import MovableCountEvaluator, ActiveCountEvaluator
 from Policy.RandomPolicy import RandomPolicy
 from MiniMaxPolicy.Evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
 from Policy.ModelBasedPolicy import ModelBasedPolicy
@@ -72,11 +73,12 @@ def compare_policies(evaluated: EstimatingPolicy, compare_to: EstimatingPolicy, 
         wins += 0 if play_game_between_policies(compare_to, evaluated, h, w, show, show_steps) else 1
         wins += play_game_between_policies(evaluated, compare_to, h, w, show, show_steps)
 
-    print('win rate of {}:  {}/{}  evaluation took: {}'.format(evaluated.name, wins, n * 2, readable_time_since(t)))
+    print('{} -- {}:{} -- {} evaluation took: {}'.format(evaluated.name, wins, n * 2 - wins, compare_to.name,
+                                                         readable_time_since(t)))
 
 
 if __name__ == '__main__':
-    evaluatorActiveCells = ColoredCellsCountEvaluator()
+    evaluatorActiveCells = ActiveCountEvaluator()
     evaluatorMoveCount = MovableCountEvaluator()
     evaluatorBid = BidirectionalStepsWithWeightEval()
 
@@ -89,18 +91,33 @@ if __name__ == '__main__':
     policy_random = RandomPolicy()
 
     h, w = 8, 8
-    model = ConvolutionValue(h, w)
-    model.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc.pt'))
-    model.eval()
+    model_old = ConvolutionValue(h, w)
+    model_old.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc.pt'))
+    model_old.eval()
+    model_old = ModelBasedPolicy(model_old, PlainFeatureExtractor(), h, w, 0.1)
 
-    model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.1)
-    model_guided = ModelGuidedMiniMax(model, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 30, depth=3,
+
+
+    model_new_3 = ConvolutionValue(h, w)
+    model_new_3.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc-14-ep-95.pt'))
+    model_new_3.eval()
+    model_3 = ModelBasedPolicy(model_new_3, PlainFeatureExtractor(), h, w, 0.1)
+
+    model_new_6 = ConvolutionValue(h, w)
+    model_new_6.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc2-10iz10.pt'))
+    model_new_6.eval()
+    model_6 = ModelBasedPolicy(model_new_6, PlainFeatureExtractor(), h, w, 0.1)
+
+
+    model_guided = ModelGuidedMiniMax(model_new_6, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 30,
+                                      depth=3,
                                       exploration_rate=0.1)
-    evaluated = model_based
-    compare_to = policyAC2_r
+    model_tree = ModelTreeD2Policy(model_new_6, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
 
-    compare_policies(evaluated, compare_to, 10, h, w, True, False)
+    evaluated = model_3
+    compare_to = model_tree
 
-    # print(compare_deterministic_policies(policyAC, policyMC))
+    for i in range(5):
+        compare_policies(model_tree, policyAC2_r, 5, h, w, True, False)
 
-    cProfile.run('compare_policies(evaluated, compare_to, 1, h, w, False, False)')
+    # cProfile.run('compare_policies(evaluated, compare_to, 1, h, w, False, False)')

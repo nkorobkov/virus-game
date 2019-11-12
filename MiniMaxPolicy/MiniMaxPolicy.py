@@ -10,7 +10,7 @@ class MiniMaxPolicy(EstimatingPolicy):
         self.evaluator: Evaluator = evaluator
         self.depth = depth
         self.pos_checked = 0
-        self.name = 'MiniMax with depth {} and evaluator {}'.format(depth, evaluator.name)
+        self.name = 'MiniMax_{} D{}'.format(evaluator.name,depth)
 
     def get_best_option(self, game_state: GameState):
         self.pos_checked = 0
@@ -19,10 +19,9 @@ class MiniMaxPolicy(EstimatingPolicy):
         else:
             return self.get_min(game_state, self.depth)
 
-
     def get_moves_and_states_to_check(self, game_state:GameState, depth:int):
         moves = list(game_state.get_all_moves())
-        next_states = [game_state.get_copy_with_move(move) for move in moves]
+        next_states = (game_state.get_copy_with_move(move) for move in moves)
         return zip(moves, next_states)
 
     def get_max(self, game_state, depth, alpha=-1000, betta=1000):

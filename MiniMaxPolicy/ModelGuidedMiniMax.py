@@ -33,7 +33,7 @@ class ModelGuidedMiniMax(ExplorativeMiniMaxPolicy):
         features_for_all_states = self.feature_extractor.get_features(next_states).float()
         v: torch.Tensor = self.model.forward(features_for_all_states)
         sorted_v, idx = v.sort(descending=False, dim=0)
-
+        # we take n minimal values  for v on next state. Because model estimates value of position for moving player
         return [(available_moves[int(i)], next_states[int(i)]) for i in idx[:amount_to_check]]
 
 

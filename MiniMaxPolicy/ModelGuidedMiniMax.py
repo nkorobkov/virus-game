@@ -30,6 +30,10 @@ class ModelGuidedMiniMax(ExplorativeMiniMaxPolicy):
             # next layer will use evaluator. It is faster (and better) to evaluate all states, than run a V estimation.
             return zip(available_moves, next_states)
 
+        if amount_to_check == available_moves_count:
+            # we returning all moves anyway, so faster to skip V evaluation
+            return zip(available_moves, next_states)
+
         features_for_all_states = self.feature_extractor.get_features(next_states).float()
         v: torch.Tensor = self.model.forward(features_for_all_states)
         sorted_v, idx = v.sort(descending=False, dim=0)

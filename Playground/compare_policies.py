@@ -118,6 +118,6 @@ if __name__ == '__main__':
     compare_to = model_tree
 
     for i in range(5):
-        compare_policies(model_tree, policyAC2_r, 5, h, w, True, False)
+        compare_policies(model_tree, model_tree, 5, h, w, True, True)
 
     # cProfile.run('compare_policies(evaluated, compare_to, 1, h, w, False, False)')

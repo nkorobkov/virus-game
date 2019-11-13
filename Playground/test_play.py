@@ -15,7 +15,7 @@ model.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc2-10iz10.p
 model.eval()
 
 model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.)
-model_tree = ModelTreeD2Policy(model, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
+model_tree = ModelTreeD2Policy(model, PlainFeatureExtractor(), h, w, lambda x: 30)
 
 evaluatorActiveCells = ActiveCountEvaluator()
 model_guided = ModelGuidedMiniMax(model, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 30, depth=4)

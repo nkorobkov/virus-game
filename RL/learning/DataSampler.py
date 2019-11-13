@@ -4,6 +4,7 @@ import torch.nn
 import numpy.random
 from Game.GameState import GameState
 from Policy.ModelBasedPolicy import ModelBasedPolicy
+from Policy.ModelTreeD2Policy import ModelTreeD2Policy
 from RL.Feature.PlainFearutesExtractor import PlainFeatureExtractor
 from Policy.exceptions import NoValidMovesException
 from Game.Teams import Teams
@@ -162,17 +163,19 @@ if __name__ == '__main__':
 
     h,w = 8,8
     model_new_6_epoch = ConvolutionValue(h, w)
-    model_new_6_epoch.load_state_dict(torch.load('    data/model8-conv-disc2-10iz10.pt'))
+    model_new_6_epoch.load_state_dict(torch.load('data/model8-conv-disc2-10iz10.pt'))
     model_new_6_epoch.eval()
 
     model_6 = ModelBasedPolicy(model_new_6_epoch, PlainFeatureExtractor(), h, w, 0.1)
+    model_tree = ModelTreeD2Policy(model_new_6_epoch, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
+
+
+    features, labels = ds.sample_data_by_self_play_with_policy(model_tree, n=1, h=8, w=8, augment=True, randomize=True,
+                                                               print_every=1)
 
     features, labels = ds.sample_data_by_self_play_with_policy(model_6, n=500, h=8, w=8, augment=True, randomize=True,
-                                                               print_every=5)
+                                                               print_every=1)
 
-    torch.save(features, 'data/selfplay_MOD6_88_games-plain-features.pt')
-    torch.save(labels, 'data/selfplay_MOD6_88_games-plain-labels.pt')
-    # h, w = 5, 5
-    # model = ConvolutionValue(h, w)
-    # model.load_state_dict(torch.load('data/model5-conv-disc.pt'))
-    # model.eval()
+    torch.save(features, 'data/selfplay_tree_88_games-plain-features.pt')
+    torch.save(labels, 'data/selfplay_tree_88_games-plain-labels.pt')
+

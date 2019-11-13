@@ -54,7 +54,7 @@ model_guided30 = ModelGuidedMiniMax(model, PlainFeatureExtractor(), h, w, evalua
 
 model_tree = ModelTreeD2Policy(model, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
 
-policies_to_evaluate = [policy_random, policyAC, policyAC2, model_based,model_tree, model_guided30]
+policies_to_evaluate = [policy_random, policyAC, policyAC2, model_based,model_tree]
 
 for p in policies_to_evaluate:
     t = time()
@@ -72,6 +72,7 @@ while moves:
 
 print('Played random game ({} moves) and determined random winner in {:.3f} sec.'.format(i, time() - t))
 
+cProfile.run('model_tree.get_move(game)')
 
 #
 # def get_next_state_values(game_state, model):

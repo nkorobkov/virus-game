@@ -38,6 +38,9 @@ class GameState:
         else:
             self.movable_masks: MaskDict = None
 
+    def __str__(self):
+        return str(self.field)
+
     @classmethod
     def from_field_list(cls, h: int, w: int, field: Field, to_move: TeamsType):
         if not h * w == len(field):

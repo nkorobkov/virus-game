@@ -21,10 +21,7 @@ class ModelBasedPolicy(EstimatingPolicy):
         self.cuda = cuda
 
     def get_next_state_values(self, game_state: GameState):
-        available_moves: List[Move] = list(game_state.get_all_moves())
-        if not available_moves:
-            raise NoValidMovesException(game_state.to_move, 'No move for {}'.format(game_state.to_move))
-        next_states = [game_state.get_copy_with_move(move) for move in available_moves]
+        available_moves, next_states = self.get_next_states(game_state)
         with torch.no_grad():
             features_for_all_states = self.feature_extractor.get_features(next_states).float()
             if self.cuda:
@@ -32,6 +29,12 @@ class ModelBasedPolicy(EstimatingPolicy):
             v: torch.Tensor = self.model.forward(features_for_all_states)
         return available_moves, next_states, v
 
+    def get_next_states(self, game_state):
+        available_moves: List[Move] = list(game_state.get_all_moves())
+        if not available_moves:
+            raise NoValidMovesException(game_state.to_move, 'No move for {}'.format(game_state.to_move))
+        next_states = [game_state.get_copy_with_move(move) for move in available_moves]
+        return available_moves, next_states
 
     def get_best_option(self, game_state: GameState):
         available_moves, next_states, v = self.get_next_state_values(game_state)

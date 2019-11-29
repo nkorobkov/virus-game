@@ -75,6 +75,7 @@ def compare_policies(evaluated: EstimatingPolicy, compare_to: EstimatingPolicy, 
 
     print('{} -- {}:{} -- {} evaluation took: {}'.format(evaluated.name, wins, n * 2 - wins, compare_to.name,
                                                          readable_time_since(t)))
+    return wins
 
 
 if __name__ == '__main__':
@@ -98,10 +99,10 @@ if __name__ == '__main__':
 
 
 
-    model_new_3 = ConvolutionValue(h, w)
-    model_new_3.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc-14-ep-95.pt'))
-    model_new_3.eval()
-    model_3 = ModelBasedPolicy(model_new_3, PlainFeatureExtractor(), h, w, 0.1)
+    model_new_2gen = ConvolutionValue(h, w)
+    model_new_2gen.load_state_dict(torch.load('../RL/learning/data/model8-second-gen-conv-15-1.pt'))
+    model_new_2gen.eval()
+    model_2 = ModelBasedPolicy(model_new_2gen, PlainFeatureExtractor(), h, w, 0.1)
 
     model_new_6 = ConvolutionValue(h, w)
     model_new_6.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc2-10iz10.pt'))
@@ -113,11 +114,11 @@ if __name__ == '__main__':
                                       depth=3,
                                       exploration_rate=0.1)
     model_tree = ModelTreeD2Policy(model_new_6, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
+    model2_tree = ModelTreeD2Policy(model_new_2gen, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
 
-    evaluated = model_3
-    compare_to = model_tree
 
-    for i in range(5):
-        compare_policies(model_tree, model_tree, 5, h, w, True, True)
-
+    wins = 0
+    for i in range(25):
+        wins += compare_policies(model_tree,policyAC2_r , 1, h, w, False, False)
+    print(wins)
     # cProfile.run('compare_policies(evaluated, compare_to, 1, h, w, False, False)')

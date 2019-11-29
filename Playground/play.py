@@ -141,5 +141,5 @@ def do_policy_move(game_state: GameState, policy: Policy):
 
 if __name__ == "__main__":
     evaluator = ActiveCountEvaluator()
-    policy = MiniMaxPolicy(evaluator, 3)
+    policy = MiniMaxPolicy(evaluator, 2)
     play_with_policy(policy, 8, 8)

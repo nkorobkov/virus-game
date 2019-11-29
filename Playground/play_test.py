@@ -1,3 +1,9 @@
+import sys
+
+from os.path import dirname, join, abspath
+
+sys.path.insert(0, abspath(join(dirname(__file__), '..')))
+
 from MiniMaxPolicy.Evaluator.SimpleEvaluators import ActiveCountEvaluator
 from MiniMaxPolicy.MiniMaxPolicy import MiniMaxPolicy
 from MiniMaxPolicy.ModelGuidedMiniMax import ModelGuidedMiniMax
@@ -12,6 +18,7 @@ import torch
 h, w = 8, 8
 model = ConvolutionValue(h, w)
 model.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc2-10iz10.pt'))
+#model.load_state_dict(torch.load('../RL/learning/data/model8-second-gen-conv-15-1.pt'))
 model.eval()
 
 model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w, 0.)

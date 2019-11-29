@@ -46,7 +46,7 @@ class Trainer:
         criterion = torch.nn.MSELoss()
         t = time()
         for epoch in range(epoch_count):
-            self.model.train(True)
+            self.model.train()
             for i in range(0, train_features.shape[0] // self.minibatch_size):
                 batch_features = train_features[i * self.minibatch_size: (i + 1) * self.minibatch_size, :]
                 batch_values = train_game_values[i * self.minibatch_size: (i + 1) * self.minibatch_size]
@@ -63,7 +63,7 @@ class Trainer:
                 optimizer.step()
 
             if (epoch + 1) % print_every == 0:
-                self.model.train(False)
+                self.model.eval()
                 with torch.no_grad():
                     pred_game_values = self.model.forward(test_features)
                     pred_game_values = pred_game_values.squeeze(1)
@@ -72,7 +72,7 @@ class Trainer:
                                                                                         readable_time_since(t)))
             if (epoch + 1) % eval_every == 0:
                 self.evaluate_model(labels)
-                torch.save(self.model.state_dict(), self.save_path.format(epoch))
+                torch.save(self.model.state_dict(), self.save_path.format(epoch+1))
 
     def split_data(self, features, labels):
 
@@ -99,7 +99,7 @@ class Trainer:
         return labels[:, -1] * (self.gamma ** labels[:, -2])
 
     def evaluate_model(self, labels):
-        self.model.train(False)
+        self.model.eval()
         h, w = self.model.field_h, self.model.field_w
         model_policy = ModelBasedPolicy(self.model, self.data_sampler.feature_extractor, h, w, exploration=0.05)
 
@@ -133,11 +133,11 @@ if __name__ == '__main__':
     #model.load_state_dict(torch.load('data/model8-conv-disc2.pt'))
     # model.eval()
 
-    features = torch.load('data/selfplay_AC2_88_games-plain-features-u.pt').float()
-    labels = torch.load('data/selfplay_AC2_88_games-plain-labels-u.pt').float()
+    features = torch.load('data/selfplay-tree-features.pt').float()
+    labels = torch.load('data/selfplay-tree-labels.pt').float()
     print(features.shape)
-    trainer = Trainer(model, data_sampler, save_path='data/model8-conv-disc-{}-ep-95.pt', minibatch_size=64, gamma=0.95)
+    trainer = Trainer(model, data_sampler, save_path='data/model8-second-gen-conv-{}.pt', minibatch_size=64, gamma=0.95)
 
-    trainer.train_on_data(features, labels, 15, 1, 1)
+    trainer.train_on_data(features, labels, 8, 1, 1)
 
     torch.save(trainer.model.state_dict(), trainer.save_path)

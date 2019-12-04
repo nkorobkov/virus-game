@@ -1,9 +1,9 @@
 /.idea
 */__pycache__
-Test/Game/debug.py
-Test/Policy/debug.py
+test/game/debug.py
+test/policy/debug.py
 *.pyc
-RL/debug.py
+rl/debug.py
 **/.DS_Store
-RL/learning/data/*
-RL/learning/tests.ipynb
+rl/learning/data/*
+rl/learning/tests.ipynb

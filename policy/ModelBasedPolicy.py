@@ -11,7 +11,7 @@ import torch.cuda
 
 class ModelBasedPolicy(EstimatingPolicy):
 
-    def __init__(self, model, feature_extractor, h, w,exploration=0, cuda = False):
+    def __init__(self, model, feature_extractor, h, w, exploration=0, cuda = False):
         self.model = model
         self.h = h
         self.w = w

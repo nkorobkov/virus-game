@@ -7,3 +7,4 @@ rl/debug.py
 **/.DS_Store
 rl/learning/data/*
 rl/learning/tests.ipynb
+db.sqlite3

@@ -24,4 +24,4 @@ sqlparse==0.3.0
 torch==1.3.1
 Twisted==19.10.0
 txaio==18.8.1
-zope.interface==4.7.1s
+zope.interface==4.7.1

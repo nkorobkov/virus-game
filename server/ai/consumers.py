@@ -47,6 +47,7 @@ class TonyAIConsumer(AIConsumer):
         state_dict = await asgiref.sync.sync_to_async(torch.load)(
             os.path.join(BASE_DIR, 'ai/trained_models/conv8value.pt'))
         model.load_state_dict(state_dict)
+        model.eval()
         feature_extractor = PlainFeatureExtractor()
         self.engine = ModelBasedPolicy(model, feature_extractor, self.h, self.w)
         await self.accept()
@@ -59,6 +60,7 @@ class JessieAIConsumer(AIConsumer):
         state_dict = await asgiref.sync.sync_to_async(torch.load)(
             os.path.join(BASE_DIR, 'ai/trained_models/conv8value.pt'))
         model.load_state_dict(state_dict)
+        model.eval()
         feature_extractor = PlainFeatureExtractor()
         evaluatorActiveCells = ActiveCountEvaluator()
 
@@ -77,4 +79,3 @@ class MaxAIConsumer(AIConsumer):
         evaluator = ActiveCountEvaluator()
         self.engine = MiniMaxPolicy(evaluator, 2)
         await self.accept()
-       

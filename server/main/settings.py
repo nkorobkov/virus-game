@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'ai',
+    'server.ai',
     'channels',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -71,7 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
-ASGI_APPLICATION = 'main.routing.application'
+ASGI_APPLICATION = 'server.main.routing.application'
 
 
 # Database
@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost',
+    'localhost', os.environ.get("FRONTEND_URL")
 )
 
 # Internationalization

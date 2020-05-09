@@ -46,7 +46,7 @@ def process_unusual_input(s):
         print(HELP)
         return
     if s == 'exit':
-        raise GameInterruptedBuUser
+        raise GameInterruptedByUser
     raise InputCanNotBeRecognized
 
 
@@ -116,13 +116,14 @@ def play_with_policy(policy: Policy, h=9, w=9):
             if list(game.get_all_moves()):
                 do_user_move(game)
             else:
-                # game state has no valid moves --> player lost
+                # Game state has no valid moves --> player lost.
                 winner = -1
+                game.print_field()
                 break
         except NoValidMovesException:
             winner = 1
             break
-        except GameInterruptedBuUser:
+        except GameInterruptedByUser:
             break
 
     print('Game is over, thanks.')
@@ -131,7 +132,7 @@ def play_with_policy(policy: Policy, h=9, w=9):
     elif winner == -1:
         print('You lost this time.')
     else:
-        print('game was interrupted.')
+        print('Game was interrupted.')
 
 
 def do_policy_move(game_state: GameState, policy: Policy):

@@ -8,5 +8,5 @@ class MoveToPositionIsImpossible(Exception):
     def __init__(self, pos):
         self.position = pos
 
-class GameInterruptedBuUser(Exception):
+class GameInterruptedByUser(Exception):
     pass

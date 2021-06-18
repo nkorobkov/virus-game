@@ -1,4 +1,5 @@
 /.idea
+/.vscode
 */__pycache__
 test/game/debug.py
 test/policy/debug.py
@@ -8,3 +9,4 @@ rl/debug.py
 rl/learning/data/*
 rl/learning/tests.ipynb
 db.sqlite3
+.venv/

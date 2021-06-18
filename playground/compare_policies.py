@@ -1,5 +1,11 @@
 import time
 
+import sys
+
+from os.path import dirname, join, abspath
+
+sys.path.insert(0, abspath(join(dirname(__file__), '..')))
+
 from policy.ModelTreeD2Policy import ModelTreeD2Policy
 from policy.Policy import EstimatingPolicy
 from minimax_policy.MiniMaxPolicy import MiniMaxPolicy
@@ -93,19 +99,19 @@ if __name__ == '__main__':
 
     h, w = 8, 8
     model_old = ConvolutionValue(h, w)
-    model_old.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc.pt'))
+    model_old.load_state_dict(torch.load('../rl/learning/data/model8-conv-disc.pt'))
     model_old.eval()
     model_old = ModelBasedPolicy(model_old, PlainFeatureExtractor(), h, w, 0.1)
 
 
 
     model_new_2gen = ConvolutionValue(h, w)
-    model_new_2gen.load_state_dict(torch.load('../RL/learning/data/model8-second-gen-conv-15-1.pt'))
+    model_new_2gen.load_state_dict(torch.load('../rl/learning/data/model8-second-gen-conv-15-1.pt'))
     model_new_2gen.eval()
     model_2 = ModelBasedPolicy(model_new_2gen, PlainFeatureExtractor(), h, w, 0.1)
 
     model_new_6 = ConvolutionValue(h, w)
-    model_new_6.load_state_dict(torch.load('../RL/learning/data/model8-conv-disc2-10iz10.pt'))
+    model_new_6.load_state_dict(torch.load('../rl/learning/data/model8-conv-disc2-10iz10.pt'))
     model_new_6.eval()
     model_6 = ModelBasedPolicy(model_new_6, PlainFeatureExtractor(), h, w, 0.1)
 

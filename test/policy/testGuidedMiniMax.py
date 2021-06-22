@@ -12,8 +12,10 @@ class TestGuidedMiniMax(BaseCasesTests.TestPolicyBasics):
         evaluator = ActiveCountEvaluator()
         model = LinearValue(3, 3)
         fe = KernelFeatureExtractor()
-        self.policy = ModelGuidedMiniMax(model, fe, 3, 3, evaluator, lambda x: x // 2 + 1, depth=1)
+        self.policy = ModelGuidedMiniMax(
+            model, fe, 3, 3, evaluator, lambda x: x // 2 + 1, depth=1
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

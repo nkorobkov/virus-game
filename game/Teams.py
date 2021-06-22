@@ -1,4 +1,11 @@
+import enum
+
 TeamsType = int
+
+
+class TeamsEnum(enum.Enum):
+    BLUE = 1
+    RED = -1
 
 
 class Teams:

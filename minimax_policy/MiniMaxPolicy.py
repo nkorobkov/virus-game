@@ -5,12 +5,11 @@ from policy.exceptions import *
 
 
 class MiniMaxPolicy(EstimatingPolicy):
-
     def __init__(self, evaluator: Evaluator, depth=3):
         self.evaluator: Evaluator = evaluator
         self.depth = depth
         self.pos_checked = 0
-        self.name = 'MiniMax_{} D{}'.format(evaluator.name,depth)
+        self.name = "MiniMax_{} D{}".format(evaluator.name, depth)
 
     def get_best_option(self, game_state: GameState):
         self.pos_checked = 0
@@ -19,20 +18,20 @@ class MiniMaxPolicy(EstimatingPolicy):
         else:
             return self.get_min(game_state, self.depth)
 
-    def get_moves_and_states_to_check(self, game_state:GameState, depth:int):
+    def get_moves_and_states_to_check(self, game_state: GameState, depth: int):
         moves = list(game_state.get_all_moves())
         next_states = (game_state.get_copy_with_move(move) for move in moves)
         return zip(moves, next_states)
 
     def get_max(self, game_state, depth, alpha=-1000, betta=1000):
-        '''
+        """
 
         :param game_state:
         :param depth:
         :param alpha: Best already explored option for maximizing player (BLUE)
         :param betta: Best already explored option for Minimizing player (RED)
         :return:
-        '''
+        """
         existing_reward = -1000
         if depth == 0:
             self.pos_checked += 1

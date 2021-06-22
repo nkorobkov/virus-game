@@ -2,11 +2,14 @@ import sys
 
 from os.path import dirname, join, abspath
 
-sys.path.insert(0, abspath(join(dirname(__file__), '..')))
+sys.path.insert(0, abspath(join(dirname(__file__), "..")))
 
 from policy.Policy import Policy
 from minimax_policy.MiniMaxPolicy import MiniMaxPolicy
-from minimax_policy.evaluator.SimpleEvaluators import MovableCountEvaluator, ActiveCountEvaluator
+from minimax_policy.evaluator.SimpleEvaluators import (
+    MovableCountEvaluator,
+    ActiveCountEvaluator,
+)
 from game.GameState import GameState, Position
 from playground.util import HELP, readable_time_since
 from playground.exceptions import *
@@ -18,8 +21,8 @@ from time import time
 
 def get_position_from_user_input(s):
     try:
-        s = s.strip(' ')
-        s = s.split(' ')
+        s = s.strip(" ")
+        s = s.split(" ")
         s = list(filter(lambda x: x.isdigit(), s))
         h, w = tuple(map(int, s))
         return Position(h, w)
@@ -37,15 +40,17 @@ def submit_user_step(step: Position, game_state: GameState):
 
 
 def check_step_valid(step: Position, game_state: GameState):
-    single_moves_positions = game_state.get_single_moves_positions_from_mask(game_state.get_all_single_moves_mask()[0])
+    single_moves_positions = game_state.get_single_moves_positions_from_mask(
+        game_state.get_all_single_moves_mask()[0]
+    )
     return step in single_moves_positions
 
 
 def process_unusual_input(s):
-    if s == 'help':
+    if s == "help":
         print(HELP)
         return
-    if s == 'exit':
+    if s == "exit":
         raise GameInterruptedByUser
     raise InputCanNotBeRecognized
 
@@ -54,7 +59,7 @@ def do_user_step(game_state: GameState, steps_left=3):
     print()
     game_state.print_field()
     print()
-    print('Enter your step. You have {} left'.format(steps_left))
+    print("Enter your step. You have {} left".format(steps_left))
     user_input = input()
     try:
         position = get_position_from_user_input(user_input)
@@ -65,10 +70,12 @@ def do_user_step(game_state: GameState, steps_left=3):
             process_unusual_input(user_input)
             return False
         except InputCanNotBeRecognized:
-            print('We failed to recognize your input, please try again or print "help" for help.')
+            print(
+                'We failed to recognize your input, please try again or print "help" for help.'
+            )
             return False
     except MoveToPositionIsImpossible:
-        print('Move to position you entered is impossible, please try again')
+        print("Move to position you entered is impossible, please try again")
         return False
 
 
@@ -99,8 +106,8 @@ def do_user_first_move(game_state: GameState):
 def play_with_policy(policy: Policy, h=9, w=9):
     game = GameState(h, w)
 
-    print('play with policy {} started.'.format(policy.name))
-    print('You are in the top left corner.')
+    print("play with policy {} started.".format(policy.name))
+    print("You are in the top left corner.")
     winner = 0
     do_user_first_move(game)
     while True:
@@ -108,11 +115,14 @@ def play_with_policy(policy: Policy, h=9, w=9):
             print()
             game.print_field()
             print()
-            print('Your move is accepted, now {} moves.'.format(policy.name))
+            print("Your move is accepted, now {} moves.".format(policy.name))
             t = time()
             do_policy_move(game, policy)
-            print('Policy made a move in {} sec. It checked {} positions'.format(readable_time_since(t),
-                                                                                 policy.pos_checked))
+            print(
+                "Policy made a move in {} sec. It checked {} positions".format(
+                    readable_time_since(t), policy.pos_checked
+                )
+            )
             if list(game.get_all_moves()):
                 do_user_move(game)
             else:
@@ -126,13 +136,13 @@ def play_with_policy(policy: Policy, h=9, w=9):
         except GameInterruptedByUser:
             break
 
-    print('Game is over, thanks.')
+    print("Game is over, thanks.")
     if winner == 1:
-        print('You won, congratulations.')
+        print("You won, congratulations.")
     elif winner == -1:
-        print('You lost this time.')
+        print("You lost this time.")
     else:
-        print('Game was interrupted.')
+        print("Game was interrupted.")
 
 
 def do_policy_move(game_state: GameState, policy: Policy):

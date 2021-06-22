@@ -4,7 +4,6 @@ import unittest
 
 
 class TestColoredCellsCounterEvaluator(BaseCasesTests.BaseTestAnyEvaluator):
-
     def setUp(self):
         self.evaluator = ActiveCountEvaluator()
 
@@ -13,11 +12,11 @@ class TestColoredCellsCounterEvaluator(BaseCasesTests.BaseTestAnyEvaluator):
 
         self.assertEqual(0, self.evaluator.evaluate(game))
 
-class TestMovableCountEvaluator(BaseCasesTests.BaseTestAnyEvaluator):
 
+class TestMovableCountEvaluator(BaseCasesTests.BaseTestAnyEvaluator):
     def setUp(self):
         self.evaluator = MovableCountEvaluator()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

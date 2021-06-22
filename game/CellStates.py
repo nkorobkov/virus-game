@@ -15,11 +15,11 @@ class CellStates:
     RB: int = -2
 
     SYMBOLS = {
-        -2: '♘♘♘',
-        -1: ' ♘ ',
-        0: '   ',
-        1: ' ♚ ',
-        2: '♚♚♚',
+        -2: "♘♘♘",
+        -1: " ♘ ",
+        0: "   ",
+        1: " ♚ ",
+        2: "♚♚♚",
     }
 
     @classmethod
@@ -30,15 +30,15 @@ class CellStates:
             return state == -1
         else:
             return state == 1
-        
+
     @classmethod
     def after_transition(cls, state: CellStatesType, team: int) -> CellStatesType:
-        '''
+        """
         Only  called with checked transition possible!
         Otherwise may return  wrong results
         :param team:
         :return:
-        '''
+        """
         if state == 0:
             # if cell is empty, put an active there
             return team

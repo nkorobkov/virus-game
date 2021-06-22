@@ -1,13 +1,14 @@
 from game.CellStates import CellStates
 from game.Teams import Teams
-from minimax_policy.evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
+from minimax_policy.evaluator.BidirectionalStepsWithWeightEval import (
+    BidirectionalStepsWithWeightEval,
+)
 from test.policy.BaseEvaluatorTestCases import BaseCasesTests
 import unittest
 from game.GameState import GameState, Field
 
 
 class TestBasicScenarios(BaseCasesTests.BaseTestAnyEvaluator):
-
     def setUp(self):
         self.evaluator = BidirectionalStepsWithWeightEval()
 
@@ -18,7 +19,6 @@ class TestBasicScenarios(BaseCasesTests.BaseTestAnyEvaluator):
 
 
 class TestExactValues(unittest.TestCase):
-
     def setUp(self):
         a, b, c, d, e = 2, 5, 9, 13, 17
         self.evaluator = BidirectionalStepsWithWeightEval(a, b, c, d)
@@ -28,40 +28,119 @@ class TestExactValues(unittest.TestCase):
         self.d = d
 
     def testSimpleField(self):
-        field: Field = \
-            [CellStates.RB, CellStates.EE, CellStates.RA, CellStates.EE,
-             CellStates.BB, CellStates.BA, CellStates.RA, CellStates.RB,
-             CellStates.BA, CellStates.EE, CellStates.EE, CellStates.EE,
-             CellStates.EE, CellStates.RB, CellStates.RB, CellStates.RA]
+        field: Field = [
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.BA,
+            CellStates.RA,
+            CellStates.RB,
+            CellStates.BA,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.RB,
+            CellStates.RA,
+        ]
 
         game = GameState.from_field_list(4, 4, field, Teams.RED)
         expected_value_blue = 4 * self.a + 2 * self.b + 1 * self.c + 2 * self.d
-        expected_value_red = - 6 * self.a - 2 * self.b - 3 * self.c - 3 * self.d
+        expected_value_red = -6 * self.a - 2 * self.b - 3 * self.c - 3 * self.d
 
-        self.assertEqual(expected_value_blue + expected_value_red, self.evaluator.evaluate(game))
+        self.assertEqual(
+            expected_value_blue + expected_value_red, self.evaluator.evaluate(game)
+        )
 
     def testRealField(self):
-        field: Field = \
-            [CellStates.RA, CellStates.EE, CellStates.RB, CellStates.EE, CellStates.EE, CellStates.RA, CellStates.EE,
-             CellStates.RB, CellStates.RA,
-             CellStates.EE, CellStates.BB, CellStates.EE, CellStates.RA, CellStates.RB, CellStates.EE, CellStates.RB,
-             CellStates.EE, CellStates.EE,
-             CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.EE, CellStates.BB, CellStates.EE,
-             CellStates.RB, CellStates.EE,
-             CellStates.EE, CellStates.RB, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.EE, CellStates.RB,
-             CellStates.EE, CellStates.EE,
-             CellStates.BB, CellStates.RA, CellStates.EE, CellStates.BB, CellStates.EE, CellStates.BB, CellStates.RB,
-             CellStates.EE, CellStates.EE,
-             CellStates.EE, CellStates.RA, CellStates.EE, CellStates.BB, CellStates.RB, CellStates.EE, CellStates.EE,
-             CellStates.RB, CellStates.EE,
-             CellStates.RA, CellStates.EE, CellStates.BB, CellStates.BB, CellStates.RB, CellStates.EE, CellStates.EE,
-             CellStates.BA, CellStates.EE,
-             CellStates.EE, CellStates.RB, CellStates.EE, CellStates.EE, CellStates.BA, CellStates.EE, CellStates.BA,
-             CellStates.BA, CellStates.EE,
-             CellStates.EE, CellStates.EE, CellStates.RA, CellStates.EE, CellStates.EE, CellStates.EE, CellStates.RA,
-             CellStates.EE, CellStates.BA]
+        field: Field = [
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.BB,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BB,
+            CellStates.BB,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.BA,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RB,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.BA,
+            CellStates.EE,
+            CellStates.BA,
+            CellStates.BA,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.EE,
+            CellStates.RA,
+            CellStates.EE,
+            CellStates.BA,
+        ]
 
-        '''
+        """
         
          w\h |   0 |   1 |   2 |   3 |   4 |   5 |   6 |   7 |   8 |
         =====+=====+=====+=====+=====+=====+=====+=====+=====+=====+
@@ -106,17 +185,17 @@ class TestExactValues(unittest.TestCase):
 
         
         
-        '''
+        """
 
         game = GameState.from_field_list(9, 9, field, Teams.RED)
 
-
         expected_value_blue = 29 * self.a + 4 * self.b + 10 * self.c + 5 * self.d
-        expected_value_red = - 40 * self.a - 3 * self.b - 10 * self.c - 9 * self.d
+        expected_value_red = -40 * self.a - 3 * self.b - 10 * self.c - 9 * self.d
 
-        self.assertEqual(expected_value_blue + expected_value_red, self.evaluator.evaluate(game))
+        self.assertEqual(
+            expected_value_blue + expected_value_red, self.evaluator.evaluate(game)
+        )
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

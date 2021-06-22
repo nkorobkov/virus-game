@@ -21,27 +21,42 @@ from rl.model.ConvolutionValue import ConvolutionValue
 
 
 class DataSampler:
-
-    def __init__(self, feature_extractor: FeatureExtractor, exploration_rate=0.1, win_value=1):
+    def __init__(
+        self, feature_extractor: FeatureExtractor, exploration_rate=0.1, win_value=1
+    ):
         self.exploration_rate = exploration_rate
         self.win_value_tensor = torch.tensor([win_value], requires_grad=False).float()
         self.feature_extractor = feature_extractor
 
-    def sample_data_by_self_play_with_policy(self, policy: EstimatingPolicy, n=100, h=5, w=5,
-                                             augment=True, randomize=False, print_every=50):
+    def sample_data_by_self_play_with_policy(
+        self,
+        policy: EstimatingPolicy,
+        n=100,
+        h=5,
+        w=5,
+        augment=True,
+        randomize=False,
+        print_every=50,
+    ):
         t = time.time()
-        print('playing {} selfplay games ...'.format(n))
+        print("playing {} selfplay games ...".format(n))
         game_states, move_counts, winners = [], [], []
         for i in range(n):
-            game_ss, mc, ws = self.sample_data_from_single_game_with_policy(policy, h, w, randomize=randomize)
+            game_ss, mc, ws = self.sample_data_from_single_game_with_policy(
+                policy, h, w, randomize=randomize
+            )
             game_states.extend(game_ss)
             move_counts.extend(mc)
             winners.extend(ws)
             if (i + 1) % print_every == 0:
-                print('{}/{} games sampled in {}'.format(i + 1, n, readable_time_since(t)))
+                print(
+                    "{}/{} games sampled in {}".format(i + 1, n, readable_time_since(t))
+                )
 
         if augment:
-            game_states.extend([DataSampler.mirror_game_state_norm(x) for x in game_states])
+            game_states.extend(
+                [DataSampler.mirror_game_state_norm(x) for x in game_states]
+            )
             move_counts.extend(move_counts)
             winners.extend(winners)
 
@@ -51,7 +66,7 @@ class DataSampler:
         winners = torch.tensor(winners, dtype=torch.int8)
         winners.unsqueeze_(1)
         labels = torch.cat((move_counts, winners), dim=1)
-        print('sampled data from {} moves'.format(len(game_states)))
+        print("sampled data from {} moves".format(len(game_states)))
         return features, labels
 
     @staticmethod
@@ -62,10 +77,7 @@ class DataSampler:
         for i in range(h):
             for j in range(w):
                 new_field[h * j + i] = game_state.field[h * i + j]
-        return GameState.from_field_list(h,
-                                         w,
-                                         new_field,
-                                         game_state.to_move)
+        return GameState.from_field_list(h, w, new_field, game_state.to_move)
 
     def sample_data_from_single_game_with_policy(self, policy, h, w, randomize=False):
         data = []
@@ -89,13 +101,15 @@ class DataSampler:
 
                 # after feature extraction all
                 # fields will be like it is blue moving, so switch winner for red moving fields
-                winners = [(-1 if i % 2 == 0 else 1) * winner for i in range(move_count)]
+                winners = [
+                    (-1 if i % 2 == 0 else 1) * winner for i in range(move_count)
+                ]
                 return data, move_counts, winners
 
     def sample_data_by_self_play_with_model(self, model: torch.nn.Module, n=100):
         t = time.time()
 
-        print('playing {} selfplay games ...'.format(n))
+        print("playing {} selfplay games ...".format(n))
         # pool = Pool(4)
         # #data = pool.map(self.sample_data_from_single_game, [model] * n)
         # data = [item for sublist in data for item in sublist]
@@ -103,13 +117,19 @@ class DataSampler:
         winners = []
         move_counts = []
         for i in range(n):
-            play_data, play_move_counts, play_winners = self.sample_data_from_single_game_with_model(model)
+            (
+                play_data,
+                play_move_counts,
+                play_winners,
+            ) = self.sample_data_from_single_game_with_model(model)
             data.extend(play_data)
             winners.extend(play_winners)
             move_counts.extend(play_move_counts)
             if (i + 1) % 10 == 0:
-                print('{}/{} games sampled in {}'.format(i + 1, n, readable_time_since(t)))
-        print('sampled data from {} moves'.format(len(data)))
+                print(
+                    "{}/{} games sampled in {}".format(i + 1, n, readable_time_since(t))
+                )
+        print("sampled data from {} moves".format(len(data)))
         move_counts = torch.tensor(move_counts, dtype=torch.int8)
         move_counts.unsqueeze_(1)
         winners = torch.tensor(winners, dtype=torch.int8)
@@ -138,16 +158,24 @@ class DataSampler:
                 data = torch.stack(data, dim=0)
                 move_counts = [(i - move_count) * -1 for i in move_counts]
 
-                winners = [(-1 if i % 2 == 0 else 1) * winner for i in range(move_count)]
+                winners = [
+                    (-1 if i % 2 == 0 else 1) * winner for i in range(move_count)
+                ]
                 return data, move_counts, winners
 
-    def sample_data_from_step_with_model(self, game, model) -> Tuple[torch.Tensor, GameState]:
+    def sample_data_from_step_with_model(
+        self, game, model
+    ) -> Tuple[torch.Tensor, GameState]:
         moves = list(game.get_all_moves())
         next_states = [game.get_copy_with_move(move) for move in moves]
         if not next_states:
-            raise NoValidMovesException(game.to_move, 'No move for {}'.format(game.to_move))
+            raise NoValidMovesException(
+                game.to_move, "No move for {}".format(game.to_move)
+            )
         with torch.no_grad():
-            features_for_all_states = self.feature_extractor.get_features([game] + next_states).float()
+            features_for_all_states = self.feature_extractor.get_features(
+                [game] + next_states
+            ).float()
             v: torch.Tensor = model.forward(features_for_all_states[1:])
 
         best_move_value, best_move_index = v.min(0)
@@ -158,24 +186,26 @@ class DataSampler:
         return features_for_all_states[0], next_state
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ds = DataSampler(feature_extractor=PlainFeatureExtractor())
 
-    h,w = 8,8
+    h, w = 8, 8
     model_new_6_epoch = ConvolutionValue(h, w)
-    model_new_6_epoch.load_state_dict(torch.load('data/model8-conv-disc2-10iz10.pt'))
+    model_new_6_epoch.load_state_dict(torch.load("data/model8-conv-disc2-10iz10.pt"))
     model_new_6_epoch.eval()
 
     model_6 = ModelBasedPolicy(model_new_6_epoch, PlainFeatureExtractor(), h, w, 0.1)
-    model_tree = ModelTreeD2Policy(model_new_6_epoch, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
+    model_tree = ModelTreeD2Policy(
+        model_new_6_epoch, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1
+    )
 
+    features, labels = ds.sample_data_by_self_play_with_policy(
+        model_tree, n=1, h=8, w=8, augment=True, randomize=True, print_every=1
+    )
 
-    features, labels = ds.sample_data_by_self_play_with_policy(model_tree, n=1, h=8, w=8, augment=True, randomize=True,
-                                                               print_every=1)
+    features, labels = ds.sample_data_by_self_play_with_policy(
+        model_6, n=500, h=8, w=8, augment=True, randomize=True, print_every=1
+    )
 
-    features, labels = ds.sample_data_by_self_play_with_policy(model_6, n=500, h=8, w=8, augment=True, randomize=True,
-                                                               print_every=1)
-
-    torch.save(features, 'data/selfplay_tree_88_games-plain-features.pt')
-    torch.save(labels, 'data/selfplay_tree_88_games-plain-labels.pt')
-
+    torch.save(features, "data/selfplay_tree_88_games-plain-features.pt")
+    torch.save(labels, "data/selfplay_tree_88_games-plain-labels.pt")

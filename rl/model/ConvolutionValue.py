@@ -8,11 +8,10 @@ INTERESTING_STATES_COUNT = 4
 
 
 class ConvolutionValue(torch.nn.Module):
-
     def __init__(self, field_h, field_w):
         super(ConvolutionValue, self).__init__()
 
-        self.name = 'Convolution'
+        self.name = "Convolution"
 
         self.field_h = field_h
         self.field_w = field_w
@@ -22,13 +21,19 @@ class ConvolutionValue(torch.nn.Module):
         self.dense_size = 256
         self.dropout = torch.nn.Dropout(p=0.5)
 
-        self.conv1 = torch.nn.Conv2d(INTERESTING_STATES_COUNT, self.conv1_size, (3, 3), padding=1, bias=False)
+        self.conv1 = torch.nn.Conv2d(
+            INTERESTING_STATES_COUNT, self.conv1_size, (3, 3), padding=1, bias=False
+        )
         self.bn1 = torch.nn.BatchNorm2d(self.conv1_size)
 
-        self.conv2 = torch.nn.Conv2d(self.conv1_size, self.conv2_size, (3, 3), padding=1, bias=False)
+        self.conv2 = torch.nn.Conv2d(
+            self.conv1_size, self.conv2_size, (3, 3), padding=1, bias=False
+        )
         self.bn2 = torch.nn.BatchNorm2d(self.conv2_size)
 
-        self.fc1 = torch.nn.Linear(self.conv2_size * self.field_w * self.field_h, self.dense_size, bias=False)
+        self.fc1 = torch.nn.Linear(
+            self.conv2_size * self.field_w * self.field_h, self.dense_size, bias=False
+        )
         self.fc_bn1 = torch.nn.BatchNorm1d(self.dense_size)
 
         self.out = torch.nn.Linear(self.dense_size, 1)
@@ -44,12 +49,14 @@ class ConvolutionValue(torch.nn.Module):
         return out
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from rl.learning.DataSampler import DataSampler
 
     feature_extractor = PlainFeatureExtractor()
     data_sampler = DataSampler(feature_extractor)
-    features, labels = data_sampler.sample_data_by_self_play_with_policy(RandomPolicy(), 5, 5, 5, True)
+    features, labels = data_sampler.sample_data_by_self_play_with_policy(
+        RandomPolicy(), 5, 5, 5, True
+    )
 
     model = ConvolutionValue(5, 5)
     print(features.shape)
@@ -62,4 +69,3 @@ if __name__ == '__main__':
     print(a.std())
     print(a.max())
     print(a.min())
-

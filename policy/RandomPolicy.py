@@ -5,12 +5,13 @@ from random import choice
 
 
 class RandomPolicy(EstimatingPolicy):
-    name = 'Random'
+    name = "Random"
 
-
-    def get_best_option(self, game_state:GameState):
+    def get_best_option(self, game_state: GameState):
 
         moves = list(game_state.get_all_moves())
         if not moves:
-            raise NoValidMovesException(game_state.to_move, 'No move for {}'.format(game_state.to_move))
+            raise NoValidMovesException(
+                game_state.to_move, "No move for {}".format(game_state.to_move)
+            )
         return 0, choice(moves)

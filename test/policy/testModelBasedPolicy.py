@@ -11,5 +11,5 @@ class TestModelBasedPolicy(BaseCasesTests.TestPolicyBasics):
         self.policy = ModelBasedPolicy(model, KernelFeatureExtractor(), 3, 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

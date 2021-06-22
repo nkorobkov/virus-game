@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 
 class Policy:
-    name = 'baseclass'
+    name = "baseclass"
     pos_checked = 0
 
     def get_move(self, game_state: GameState) -> List[Position]:
@@ -11,7 +11,6 @@ class Policy:
 
 
 class EstimatingPolicy(Policy):
-
     def get_best_option(self, game_state: GameState) -> Tuple[float, Move]:
         raise NotImplementedError("Usage of get best option from base Engine class")
 

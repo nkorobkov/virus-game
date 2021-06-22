@@ -2,6 +2,10 @@
 
 This repo holds game engine for paper and pen game called "Virus War".   
 
+You can explore the game and play with one of the ai engines from this repo on the deployed frontend at
+https://virusvar.nkorobkov.com
+(if it still works by the time you find the link)
+
 [![Build Status](https://travis-ci.org/nkorobkov/virus-game.svg?branch=master)](https://travis-ci.org/nkorobkov/virus-game)
 
 ### Game

@@ -9,12 +9,19 @@ from random import random, choice
 
 
 class ModelTreeD2Policy(ModelBasedPolicy):
-
-    def __init__(self, model: torch.nn.Module, feature_extractor, h, w, sample_size_resolver: Callable[[int], int],
-                 exploration=0, cuda=False):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        feature_extractor,
+        h,
+        w,
+        sample_size_resolver: Callable[[int], int],
+        exploration=0,
+        cuda=False,
+    ):
 
         super().__init__(model, feature_extractor, h, w, exploration, cuda)
-        self.name = 'Tree D2 and model {}'.format(model.name)
+        self.name = "Tree D2 and model {}".format(model.name)
         self.sample_size_resolver = sample_size_resolver
 
     def get_state_value(self, game_state: GameState) -> float:
@@ -33,7 +40,9 @@ class ModelTreeD2Policy(ModelBasedPolicy):
 
         available_moves, next_states, values = self.get_next_state_values(game_state)
         sorted_v, idx = values.sort(descending=False, dim=0)
-        amount_to_check = min(len(available_moves), self.sample_size_resolver(len(available_moves)))
+        amount_to_check = min(
+            len(available_moves), self.sample_size_resolver(len(available_moves))
+        )
         top_move, top_move_value = available_moves[0], -100
         for i in range(amount_to_check):
             cid = int(idx[i])

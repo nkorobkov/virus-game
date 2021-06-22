@@ -5,9 +5,14 @@ from policy.Policy import EstimatingPolicy, Policy
 from minimax_policy.MiniMaxPolicy import MiniMaxPolicy
 from minimax_policy.ExplorativeMiniMaxPolicy import ExplorativeMiniMaxPolicy
 from minimax_policy.ModelGuidedMiniMax import ModelGuidedMiniMax
-from minimax_policy.evaluator.SimpleEvaluators import MovableCountEvaluator, ActiveCountEvaluator
+from minimax_policy.evaluator.SimpleEvaluators import (
+    MovableCountEvaluator,
+    ActiveCountEvaluator,
+)
 from policy.RandomPolicy import RandomPolicy
-from minimax_policy.evaluator.BidirectionalStepsWithWeightEval import BidirectionalStepsWithWeightEval
+from minimax_policy.evaluator.BidirectionalStepsWithWeightEval import (
+    BidirectionalStepsWithWeightEval,
+)
 from policy.ModelBasedPolicy import ModelBasedPolicy
 from game.GameState import GameState, Position
 from policy.exceptions import *
@@ -25,15 +30,143 @@ from random import choice
 
 # in this position it is important to secure red base by stepping at 0 3, kill at 5 3  and add  extra life somewhere
 # Ideal policy should do that.
-field = [1, 0, 0, 0, 2, 0, 0, 0, 1, -1, -2, -2, 2, -1, -1, 0, 0, 1, 1, -2, 2, -1, 0, 0, 0, 1, -2, -2, 2, -1, -1, 0, 1,
-         0, -2, -2, 2, 0, 0, 0, 0, 1, 1, 1, 2, 2, 0, 0, 0, 1, 0, -2, 2, -1, -1, 0, 0, 0, -2, -2, 2, 0, 0, -1]
+field = [
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    1,
+    -1,
+    -2,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    0,
+    1,
+    1,
+    -2,
+    2,
+    -1,
+    0,
+    0,
+    0,
+    1,
+    -2,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    1,
+    0,
+    -2,
+    -2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    0,
+    0,
+    -2,
+    -2,
+    2,
+    0,
+    0,
+    -1,
+]
 
 # blue moves. It is important to unplug red's base to win. It is exact move.
-field2 = [1, -1, 0, 0, 2, 0, 0, 0, 1, -1, -2, -2, 2, -1, -1, 0, 0, 1, 1, -2, 2, -1, 0, 0, 0, 1, -2, -2, 2, -1, -1, 0, 1,
-          0, -2, -2, 2, 0, 0, 0, 0, 1, 1, -2, 2, 2, 0, 0, 0, 1, 0, -2, 2, -1, -1, 0, 0, -1, -2, -2, 2, 0, 0, -1]
+field2 = [
+    1,
+    -1,
+    0,
+    0,
+    2,
+    0,
+    0,
+    0,
+    1,
+    -1,
+    -2,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    0,
+    1,
+    1,
+    -2,
+    2,
+    -1,
+    0,
+    0,
+    0,
+    1,
+    -2,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    1,
+    0,
+    -2,
+    -2,
+    2,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    -2,
+    2,
+    2,
+    0,
+    0,
+    0,
+    1,
+    0,
+    -2,
+    2,
+    -1,
+    -1,
+    0,
+    0,
+    -1,
+    -2,
+    -2,
+    2,
+    0,
+    0,
+    -1,
+]
 
 game = GameState.from_field_list(8, 8, field, Teams.RED)
-#game = GameState.from_field_list(8, 8, field2, Teams.BLUE)
+# game = GameState.from_field_list(8, 8, field2, Teams.BLUE)
 
 game.print_field()
 
@@ -47,10 +180,12 @@ policy_random = RandomPolicy()
 h, w = 8, 8
 
 model = ConvolutionValue(h, w)
-model.load_state_dict(torch.load('../../RL/learning/data/model8-conv-disc2-10iz10.pt'))
+model.load_state_dict(torch.load("../../RL/learning/data/model8-conv-disc2-10iz10.pt"))
 model.eval()
 model_based = ModelBasedPolicy(model, PlainFeatureExtractor(), h, w)
-model_guided30 = ModelGuidedMiniMax(model, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 50, depth=3)
+model_guided30 = ModelGuidedMiniMax(
+    model, PlainFeatureExtractor(), h, w, evaluatorActiveCells, lambda x: 50, depth=3
+)
 
 model_tree = ModelTreeD2Policy(model, PlainFeatureExtractor(), h, w, lambda x: 30, 0.1)
 
@@ -59,7 +194,7 @@ policies_to_evaluate = [policy_random, policyAC, policyAC2, model_based, model_t
 for p in policies_to_evaluate:
     t = time()
     p.get_move(game)
-    print('Policy: {} made move in {:.3f} sec.'.format(p.name, time() - t))
+    print("Policy: {} made move in {:.3f} sec.".format(p.name, time() - t))
 
 t = time()
 g = GameState()
@@ -68,11 +203,15 @@ i = 0
 while moves:
     g.make_move(choice(moves))
     moves = list(g.get_all_moves())
-    i+=1
+    i += 1
 
-print('Played random game ({} moves) and determined random winner in {:.3f} sec.'.format(i, time() - t))
+print(
+    "Played random game ({} moves) and determined random winner in {:.3f} sec.".format(
+        i, time() - t
+    )
+)
 
-cProfile.run('[model_tree.get_move(game) for _ in range(10)]')
+cProfile.run("[model_tree.get_move(game) for _ in range(10)]")
 
 #
 # def get_next_state_values(game_state, model):

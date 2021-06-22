@@ -9,7 +9,7 @@ from itertools import combinations, product, chain
 from collections import namedtuple
 
 # May be one day get rid of it and use only indices
-Position = namedtuple('Position', ['h', 'w'])
+Position = namedtuple("Position", ["h", "w"])
 
 Mask = List[bool]
 MaskDict = Dict[TeamsType, Mask]
@@ -60,8 +60,10 @@ class GameState:
         return new_game
 
     def copy_movable_masks(self) -> MaskDict:
-        return {Teams.BLUE: list(self.movable_masks[Teams.BLUE]),
-                Teams.RED: list(self.movable_masks[Teams.RED])}
+        return {
+            Teams.BLUE: list(self.movable_masks[Teams.BLUE]),
+            Teams.RED: list(self.movable_masks[Teams.RED]),
+        }
 
     def set_cell(self, pos: Position, state: CellStatesType):
         self.field[self.position_to_index(pos)] = state
@@ -85,11 +87,11 @@ class GameState:
         return Position(index // self.size_w, index % self.size_w)
 
     def transition_single_cell(self, pos: Position):
-        '''
+        """
         Changes the field like player self.to_move made a step at position pos
         :param pos:
         :return: None
-        '''
+        """
         index = self.position_to_index(pos)
         current_state: CellStatesType = self.field[index]
         if self.movable_masks[self.to_move][index]:
@@ -97,24 +99,36 @@ class GameState:
             self.set_cell_on_index(index, next_state)
         else:
             raise ForbidenTransitionError(
-                'transition on {} in state {} is not possible for  {}'.
-                    format(pos, current_state, self.to_move))
+                "transition on {} in state {} is not possible for  {}".format(
+                    pos, current_state, self.to_move
+                )
+            )
 
     def update_movable_masks(self, move: Move) -> None:
         for to_move in [-1, 1]:
             for step in move:
                 step_index = self.position_to_index(step)
-                self.movable_masks[to_move][step_index] = CellStates.is_transition_possible(self.field[step_index],
-                                                                                            to_move)
+                self.movable_masks[to_move][
+                    step_index
+                ] = CellStates.is_transition_possible(self.field[step_index], to_move)
 
     def get_movable_masks(self) -> MaskDict:
-        return \
-            {to_move: list(map(lambda x: CellStates.is_transition_possible(x, to_move), self.field))
-             for to_move in [1, -1]}
+        return {
+            to_move: list(
+                map(lambda x: CellStates.is_transition_possible(x, to_move), self.field)
+            )
+            for to_move in [1, -1]
+        }
 
     def get_all_single_moves_mask(self) -> Tuple[Mask, Set[int]]:
-        base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
-        active_state = CellStates.BLUE_ACTIVE if self.to_move == Teams.BLUE else CellStates.RED_ACTIVE
+        base_state = (
+            CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
+        )
+        active_state = (
+            CellStates.BLUE_ACTIVE
+            if self.to_move == Teams.BLUE
+            else CellStates.RED_ACTIVE
+        )
 
         reachable_mask: Mask = [False] * len(self.field)
         active_positions = deque()
@@ -133,8 +147,12 @@ class GameState:
                     active_bases_seen.add(cell_i)
                     active_positions.append(self.index_to_position(cell_i))
 
-        return [reachable and movable for reachable, movable in
-                zip(reachable_mask, self.movable_masks[self.to_move])], active_bases_seen
+        return [
+            reachable and movable
+            for reachable, movable in zip(
+                reachable_mask, self.movable_masks[self.to_move]
+            )
+        ], active_bases_seen
 
     # consider nubma here
     def get_cell_neighbours_indices(self, pos: Position):
@@ -161,17 +179,20 @@ class GameState:
             if h > 0:
                 yield self.hw_to_index(h - 1, w + 1)
 
-    def get_all_unseen_moves_from_pos(self, pos: Position, seen: Mask, active_bases_already_seen: Set[int] = None) -> \
-            Iterator[Position]:
-        '''
+    def get_all_unseen_moves_from_pos(
+        self, pos: Position, seen: Mask, active_bases_already_seen: Set[int] = None
+    ) -> Iterator[Position]:
+        """
         :param pos:
         :param seen:
         :param active_bases_already_seen: Function would not traverse bases that present in this set, to check
          if they lead to unseen move
         :return: Iterator on all positions that can be stepped from position pos, and have not been seen already
         (not in seen).
-        '''
-        base_state = CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
+        """
+        base_state = (
+            CellStates.BLUE_BASE if self.to_move == Teams.BLUE else CellStates.RED_BASE
+        )
         if active_bases_already_seen is None:
             active_bases_seen = set()
         else:
@@ -180,9 +201,11 @@ class GameState:
         seen_this_run_indices = set()
 
         for index in self.get_cell_neighbours_indices(pos):
-            if not seen[index] \
-                    and self.movable_masks[self.to_move][index] \
-                    and index not in seen_this_run_indices:
+            if (
+                not seen[index]
+                and self.movable_masks[self.to_move][index]
+                and index not in seen_this_run_indices
+            ):
                 # We can make a step at index position.
                 seen_this_run_indices.add(index)
                 yield self.index_to_position(index)
@@ -194,64 +217,91 @@ class GameState:
                     checking_index = bases_to_check.popleft()
                     active_bases_seen.add(checking_index)
                     for checking_neighbour_index in self.get_cell_neighbours_indices(
-                            self.index_to_position(checking_index)):
+                        self.index_to_position(checking_index)
+                    ):
                         checking_neighbour_state = self.field[checking_neighbour_index]
-                        if checking_neighbour_state == base_state and checking_neighbour_index not in active_bases_seen:
+                        if (
+                            checking_neighbour_state == base_state
+                            and checking_neighbour_index not in active_bases_seen
+                        ):
                             bases_to_check.append(checking_neighbour_index)
-                        elif self.movable_masks[self.to_move][checking_neighbour_index] \
-                                and checking_neighbour_index not in seen_this_run_indices \
-                                and not seen[checking_neighbour_index]:
+                        elif (
+                            self.movable_masks[self.to_move][checking_neighbour_index]
+                            and checking_neighbour_index not in seen_this_run_indices
+                            and not seen[checking_neighbour_index]
+                        ):
                             seen_this_run_indices.add(checking_neighbour_index)
                             yield self.index_to_position(checking_neighbour_index)
 
-    def get_all_double_moves_from_single_moves(self, single_moves_positions: List[Position], single_moves_mask: Mask,
-                                               active_bases_seen: Set[int]) \
-            -> Tuple[List[List[Position]], DefaultDict[Position, Set], DefaultDict[Position, List]]:
+    def get_all_double_moves_from_single_moves(
+        self,
+        single_moves_positions: List[Position],
+        single_moves_mask: Mask,
+        active_bases_seen: Set[int],
+    ) -> Tuple[
+        List[List[Position]], DefaultDict[Position, Set], DefaultDict[Position, List]
+    ]:
 
         double_moves = []
         second_to_firsts = defaultdict(set)
         first_to_seconds = defaultdict(list)
 
         for first_pos in single_moves_positions:
-            for second_pos in self.get_all_unseen_moves_from_pos(first_pos, single_moves_mask, active_bases_seen):
+            for second_pos in self.get_all_unseen_moves_from_pos(
+                first_pos, single_moves_mask, active_bases_seen
+            ):
                 double_moves.append([first_pos, second_pos])
                 second_to_firsts[second_pos].add(first_pos)
                 first_to_seconds[first_pos].append(second_pos)
 
         return double_moves, second_to_firsts, first_to_seconds
 
-    def get_all_3_steps_moves(self, double_moves, single_moves_mask: Mask, initially_seen_active_bases: Set[int]) -> \
-            Iterator[Move]:
+    def get_all_3_steps_moves(
+        self,
+        double_moves,
+        single_moves_mask: Mask,
+        initially_seen_active_bases: Set[int],
+    ) -> Iterator[Move]:
         for double_move in double_moves:
             no_third: Set[Position] = set(
-                self.get_all_unseen_moves_from_pos(double_move[0], single_moves_mask, initially_seen_active_bases))
+                self.get_all_unseen_moves_from_pos(
+                    double_move[0], single_moves_mask, initially_seen_active_bases
+                )
+            )
 
             third: Set[Position] = set(
-                self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask))
+                self.get_all_unseen_moves_from_pos(double_move[1], single_moves_mask)
+            )
             # would  be nice to exclue bases seen on first move lookup somehow
 
             third.difference_update(no_third)
             yield from map(lambda y: (double_move[0], double_move[1], y), third)
 
-    def get_all_ds_steps_moves(self, single_positions: List[Position], second_to_firsts) -> Iterable[Move]:
-        '''
+    def get_all_ds_steps_moves(
+        self, single_positions: List[Position], second_to_firsts
+    ) -> Iterable[Move]:
+        """
         :param single_positions: List of positions of  all reachable in one step cells
         :param second_to_firsts:
         :return: ierator of valid 3 cell moves that contains two cells reachable in  single step and one other
-        '''
+        """
         for second, firsts in second_to_firsts.items():
             double_access = combinations(firsts, 2)
             rest = product(firsts, filter(lambda x: x not in firsts, single_positions))
-            yield from map(lambda x: (x[0], x[1], second),
-                           filter(lambda x: x[0] != x[1], chain(double_access, rest)))
+            yield from map(
+                lambda x: (x[0], x[1], second),
+                filter(lambda x: x[0] != x[1], chain(double_access, rest)),
+            )
 
-    def get_all_dd_steps_moves(self, first_to_seconds: DefaultDict[Position, List[Position]]) -> Iterable[Move]:
-        '''
+    def get_all_dd_steps_moves(
+        self, first_to_seconds: DefaultDict[Position, List[Position]]
+    ) -> Iterable[Move]:
+        """
 
         :param first_to_seconds:
         :return: iterator of valid 3 cell moves that contains one cell reachable in single step and two cells reachable
         in single step from it
-        '''
+        """
         for first, seconds in first_to_seconds.items():
             yield from map(lambda x: (first, x[0], x[1]), combinations(seconds, 2))
 
@@ -267,10 +317,17 @@ class GameState:
 
         single_positions = self.get_single_moves_positions_from_mask(single_moves_mask)
 
-        double_moves, second_to_firsts, first_to_seconds = \
-            self.get_all_double_moves_from_single_moves(single_positions, single_moves_mask, active_bases_seen)
+        (
+            double_moves,
+            second_to_firsts,
+            first_to_seconds,
+        ) = self.get_all_double_moves_from_single_moves(
+            single_positions, single_moves_mask, active_bases_seen
+        )
 
-        t_step_moves = self.get_all_3_steps_moves(double_moves, single_moves_mask, active_bases_seen)
+        t_step_moves = self.get_all_3_steps_moves(
+            double_moves, single_moves_mask, active_bases_seen
+        )
 
         dd_step_moves = self.get_all_dd_steps_moves(first_to_seconds)
 
@@ -294,24 +351,29 @@ class GameState:
 
     def print_field(self):
 
-        header = ' w\h ' + '| {:3} ' * self.size_w + '|'
+        header = " w\h " + "| {:3} " * self.size_w + "|"
         header = header.format(*range(self.size_w))
-        interm = '=====+' * (self.size_w + 1)
-        line = '-----+' * (self.size_w + 1)
+        interm = "=====+" * (self.size_w + 1)
+        line = "-----+" * (self.size_w + 1)
         print(header)
         print(interm)
         for i in range(self.size_h):
-            print(' {:3} |'.format(i), end='')
+            print(" {:3} |".format(i), end="")
             for j in range(self.size_w):
-                print(' {:3} |'.format(CellStates.symbol(self.get_cell_state(Position(i, j)))), end='')
+                print(
+                    " {:3} |".format(
+                        CellStates.symbol(self.get_cell_state(Position(i, j)))
+                    ),
+                    end="",
+                )
             print()
-            print('     |', end='')
+            print("     |", end="")
             for j in range(self.size_w):
                 state = self.get_cell_state(Position(i, j))
                 if state == CellStates.RED_ACTIVE or state == CellStates.BLUE_ACTIVE:
-                    s = '   '
+                    s = "   "
                 else:
                     s = CellStates.symbol(state)
-                print(' {:3} |'.format(s), end='')
+                print(" {:3} |".format(s), end="")
             print()
             print(line)

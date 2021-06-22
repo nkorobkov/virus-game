@@ -14,5 +14,5 @@ class TestTree2D(BaseCasesTests.TestPolicyBasics):
         self.policy = ModelTreeD2Policy(model, fe, 3, 3, lambda x: x // 2 + 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

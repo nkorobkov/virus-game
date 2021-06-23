@@ -2,7 +2,7 @@
 
 This repo holds game engine for paper and pen game called "Virus War".   
 
-You can explore the game and play with one of the ai engines from this repo on the deployed frontend at
+You can explore the game and play it with your friends or with one of the ai engines from this repo on the deployed frontend at
 https://virusvar.nkorobkov.com
 (if it still works by the time you find the link)
 
@@ -17,7 +17,7 @@ The game usually played on the 8x8 square field. But game size can be changed bu
 In a usual game number of legal moves for players fluctuates around 3K and can reach 15K for certain positions.
 Such a huge branching factor makes the game difficult for classic minimax approaches.  
 
-### Play with computer
+### Play with computer localy
 
 Engine is writen in pure python and do not need any dependencies to run.  
 

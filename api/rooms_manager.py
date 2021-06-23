@@ -115,9 +115,7 @@ class RoomsManager:
             return RoomInfo(exists=True, teams_joined=teams)
 
     async def disconnect(self, room_id, websocket):
-        print(self.rooms, room_id)
         room = self.rooms.get(room_id)
-        print(room)
         if room.red_ws == websocket:
             room.red_ws = None
             if room.blue_ws:
@@ -158,7 +156,7 @@ class RoomsManager:
                 )
             except ForbidenTransitionError:
                 print("forbiden transition")
-                await self.initiate_recovery()
+                await self.reset_from_server(room_id)
                 return
             updated_steps_left -= 1
             if updated_steps_left == 0:
@@ -170,7 +168,7 @@ class RoomsManager:
             or not updated_state_backend.to_move == updated_state_frontend.to_move
             or not updated_steps_left == data["state"]["stepsLeft"]
         ):
-            print("states do not match. Some error happened.")
+            print("States do not match. Some error happened.")
             await self.reset_from_server(room_id)
             return
         # Now we established that the move is consistent.
@@ -191,7 +189,7 @@ class RoomsManager:
 
     async def reset_from_server(self, room_id: int):
         room = self.rooms.get(room_id)
-        if not room.red_ws and not room.blue_ws:
+        if not room.red_ws or not room.blue_ws:
             print("trying to reset while one player is not connected")
             return
         await self.reset_game_state_on_client(room_id, room.red_ws, -1)
